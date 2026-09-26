@@ -63,53 +63,196 @@ export default function App() {
 // ============== LOGIN PAGE ==============
 function LoginPage() {
   const { setCurrentUser } = useApp();
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('government');
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
 
+  // New user registration fields
+  const [newName, setNewName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newDepartment, setNewDepartment] = useState('Ministry of Coal');
+  const [newRole, setNewRole] = useState('government');
+
+  const roleLabels = { 
+    government: 'Government / Regulatory Officer', 
+    mine_manager: 'Mine Manager', 
+    safety_officer: 'Safety Officer', 
+    inspector: 'Field Inspector' 
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
     const user = users.find(u => u.email === email && u.password === password);
-    if (user) { setCurrentUser(user); }
-    else { setError('Invalid credentials. Select an authorized account below.'); }
+    if (user) { 
+      setCurrentUser(user); 
+    } else { 
+      setError('Invalid credentials. Select an authorized account below or Create an Account.'); 
+    }
+  };
+
+  const handleRegister = (e) => {
+    e.preventDefault();
+    if (!newName.trim() || !newEmail.trim() || !newPassword.trim()) {
+      setError('Please complete all registration fields.');
+      return;
+    }
+    const existing = users.find(u => u.email.toLowerCase() === newEmail.trim().toLowerCase());
+    if (existing) {
+      setError('An account with this email already exists. Please Sign In.');
+      return;
+    }
+    const newUser = {
+      id: `U${String(users.length + 1).padStart(3, '0')}`,
+      name: newName.trim(),
+      email: newEmail.trim(),
+      password: newPassword,
+      role: newRole,
+      avatar: newRole === 'inspector' ? '🔍' : newRole === 'safety_officer' ? '👩‍🔬' : newRole === 'mine_manager' ? '👷' : '👨‍💼',
+      department: newDepartment.trim() || 'Ministry of Coal',
+      designation: roleLabels[newRole] || 'Governance Officer',
+      mineId: newRole === 'mine_manager' ? 'M001' : undefined
+    };
+    users.push(newUser);
+    setCurrentUser(newUser);
   };
 
   const quickLogin = (user) => { setCurrentUser(user); };
-
-  const roleLabels = { government: 'Government / Regulatory Officer', mine_manager: 'Mine Manager', safety_officer: 'Safety Officer', inspector: 'Field Inspector' };
 
   return (
     <div className="login-page">
       <div className="login-bg" />
       <div className="login-card animate-in">
         <h1>CONETRAAL</h1>
-        <p className="login-subtitle">AI-Powered Smart Mine Governance & Compliance</p>
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label>Email</label>
-            <input className="form-input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your email" />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input className="form-input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" />
-          </div>
-          <div className="form-group">
-            <label>Role</label>
-            <select className="form-select" value={role} onChange={e => setRole(e.target.value)}>
-              {Object.entries(roleLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} /> Remember me
-            </label>
-            <a href="#" style={{ fontSize: '0.78rem' }}>Forgot password?</a>
-          </div>
-          {error && <p style={{ color: 'var(--red)', fontSize: '0.78rem', marginBottom: 12 }}>{error}</p>}
-          <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>Sign In</button>
-        </form>
+        <p className="login-subtitle">
+          {isSignUp ? 'New User Registration — Coal Mine Governance' : 'AI-Powered Smart Mine Governance & Compliance'}
+        </p>
+
+        {isSignUp ? (
+          <form onSubmit={handleRegister}>
+            <div className="form-group">
+              <label>Full Name</label>
+              <input 
+                className="form-input" 
+                type="text" 
+                required 
+                value={newName} 
+                onChange={e => setNewName(e.target.value)} 
+                placeholder="Enter your full name" 
+              />
+            </div>
+            <div className="form-group">
+              <label>Official Email</label>
+              <input 
+                className="form-input" 
+                type="email" 
+                required 
+                value={newEmail} 
+                onChange={e => setNewEmail(e.target.value)} 
+                placeholder="e.g. officer@dgms.gov.in" 
+              />
+            </div>
+            <div className="form-group">
+              <label>Password</label>
+              <input 
+                className="form-input" 
+                type="password" 
+                required 
+                value={newPassword} 
+                onChange={e => setNewPassword(e.target.value)} 
+                placeholder="Create a password" 
+              />
+            </div>
+            <div className="form-group">
+              <label>Department / Authority</label>
+              <input 
+                className="form-input" 
+                type="text" 
+                value={newDepartment} 
+                onChange={e => setNewDepartment(e.target.value)} 
+                placeholder="e.g. DGMS / Coal India Ltd" 
+              />
+            </div>
+            <div className="form-group">
+              <label>Designated Role</label>
+              <select className="form-select" value={newRole} onChange={e => setNewRole(e.target.value)}>
+                {Object.entries(roleLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </div>
+            {error && <p style={{ color: 'var(--red)', fontSize: '0.78rem', marginBottom: 12 }}>{error}</p>}
+            <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>Create Account</button>
+            <div style={{ textAlign: 'center', marginTop: 14, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => { setIsSignUp(false); setError(''); }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-accent)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  padding: 0,
+                  font: 'inherit'
+                }}
+              >
+                Sign In
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleLogin}>
+            <div className="form-group">
+              <label>Email</label>
+              <input className="form-input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your email" />
+            </div>
+            <div className="form-group">
+              <label>Password</label>
+              <input className="form-input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" />
+            </div>
+            <div className="form-group">
+              <label>Role</label>
+              <select className="form-select" value={role} onChange={e => setRole(e.target.value)}>
+                {Object.entries(roleLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} /> Remember me
+              </label>
+              <a href="#" style={{ fontSize: '0.78rem' }}>Forgot password?</a>
+            </div>
+            {error && <p style={{ color: 'var(--red)', fontSize: '0.78rem', marginBottom: 12 }}>{error}</p>}
+            <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>Sign In</button>
+            
+            {/* New user call-to-action */}
+            <div style={{ textAlign: 'center', marginTop: 14, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+              Don't have an account?{' '}
+              <button
+                type="button"
+                id="create-account-link"
+                onClick={() => { setIsSignUp(true); setError(''); }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-accent)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  padding: 0,
+                  font: 'inherit'
+                }}
+              >
+                Create Account
+              </button>
+            </div>
+          </form>
+        )}
+
         <div className="login-quick-accounts">
           <p>Authorized Role Access</p>
           {users.slice(0, 4).map(u => (
@@ -236,12 +379,20 @@ function Topbar() {
         <button className="topbar-btn" onClick={() => setShowNotifications(!showNotifications)} title="Notifications">
           🔔 {unreadCount > 0 && <span className="badge-dot" />}
         </button>
-        <div className="user-menu">
+        <div className="user-menu" onClick={() => setCurrentUser(null)} title="Click to Sign Out" style={{ cursor: 'pointer' }}>
           <div className="user-avatar">{currentUser?.avatar}</div>
           <div className="user-info">
             <div className="user-name">{currentUser?.name}</div>
             <div className="user-role">{currentUser?.role?.replace('_', ' ')}</div>
           </div>
+          <button 
+            type="button"
+            className="btn btn-sm btn-outline" 
+            style={{ padding: '2px 8px', fontSize: '0.7rem', marginLeft: 6 }}
+            onClick={(e) => { e.stopPropagation(); setCurrentUser(null); }}
+          >
+            Logout
+          </button>
         </div>
       </div>
     </div>

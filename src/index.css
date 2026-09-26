@@ -1,51 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* Core palette - Coal Mining & Anthracite Theme */
-  --bg-primary: #07090c;
-  --bg-secondary: #0e1117;
-  --bg-tertiary: #151922;
-  --bg-card: rgba(18, 22, 30, 0.9);
-  --bg-card-hover: rgba(26, 32, 44, 0.95);
-  --bg-elevated: #1d2330;
-  --bg-glass: rgba(14, 17, 23, 0.9);
-  --bg-input: #080a0e;
+  /* Core palette - Pure Coal Anthracite & Raw Carbon Theme */
+  --bg-primary: #090a0c;
+  --bg-secondary: #111215;
+  --bg-tertiary: #18191e;
+  --bg-card: rgba(18, 19, 23, 0.94);
+  --bg-card-hover: rgba(26, 27, 33, 0.98);
+  --bg-elevated: #202228;
+  --bg-glass: rgba(17, 18, 22, 0.92);
+  --bg-input: #0b0c0e;
   
-  --border: #283241;
-  --border-light: rgba(245, 158, 11, 0.12);
+  --border: #26282e;
+  --border-light: rgba(245, 158, 11, 0.16);
   --border-focus: #f59e0b;
   
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-tertiary: #64748b;
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
   --text-accent: #f59e0b;
   
   /* Status colors - Mining & Safety specific */
   --green: #10b981;
-  --green-bg: rgba(16, 185, 129, 0.12);
-  --green-border: rgba(16, 185, 129, 0.3);
+  --green-bg: rgba(16, 185, 129, 0.14);
+  --green-border: rgba(16, 185, 129, 0.35);
   --yellow: #f59e0b;
-  --yellow-bg: rgba(245, 158, 11, 0.14);
-  --yellow-border: rgba(245, 158, 11, 0.35);
+  --yellow-bg: rgba(245, 158, 11, 0.15);
+  --yellow-border: rgba(245, 158, 11, 0.4);
   --orange: #f97316;
-  --orange-bg: rgba(249, 115, 22, 0.14);
-  --orange-border: rgba(249, 115, 22, 0.35);
+  --orange-bg: rgba(249, 115, 22, 0.15);
+  --orange-border: rgba(249, 115, 22, 0.4);
   --red: #ef4444;
-  --red-bg: rgba(239, 68, 68, 0.14);
-  --red-border: rgba(239, 68, 68, 0.35);
+  --red-bg: rgba(239, 68, 68, 0.15);
+  --red-border: rgba(239, 68, 68, 0.4);
   --blue: #f59e0b;              /* Coal theme primary accent (Warm Gold/Amber) */
   --blue-bg: rgba(245, 158, 11, 0.14);
   --blue-border: rgba(245, 158, 11, 0.38);
   --purple: #d97706;            /* Deep amber/bronze */
   --purple-bg: rgba(217, 119, 6, 0.14);
   --purple-border: rgba(217, 119, 6, 0.35);
-  --cyan: #38bdf8;             /* Mine Ventilation / Gas Telemetry Blue */
-  --cyan-bg: rgba(56, 189, 248, 0.12);
-  --cyan-border: rgba(56, 189, 248, 0.3);
+  --cyan: #eab308;             /* Miner's Reflector Yellow / Lantern Glow */
+  --cyan-bg: rgba(234, 179, 8, 0.14);
+  --cyan-border: rgba(234, 179, 8, 0.35);
 
   /* Coal Theme Accents */
-  --coal-black: #080a0d;
-  --coal-charcoal: #12161e;
+  --coal-black: #060708;
+  --coal-charcoal: #121316;
   --coal-amber: #f59e0b;
   --coal-gold: #fbbf24;
   --coal-ember: #ea580c;
@@ -56,8 +56,8 @@
   --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --gradient-warning: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  --gradient-card: linear-gradient(145deg, #151a24 0%, #19202e 100%);
-  --gradient-coal: linear-gradient(135deg, #263140 0%, #12151c 100%);
+  --gradient-card: linear-gradient(145deg, #131418 0%, #17181e 100%);
+  --gradient-coal: linear-gradient(135deg, #22242c 0%, #0c0d10 100%);
   --gradient-gold: linear-gradient(135deg, #fef08a 0%, #fbbf24 50%, #f59e0b 100%);
   
   /* Shadows */
@@ -190,20 +190,22 @@ a:hover { text-decoration: underline; }
 }
 
 .nav-item.active {
-  background: var(--blue-bg);
-  color: var(--blue);
-  border: 1px solid var(--blue-border);
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.18) 0%, rgba(234, 88, 12, 0.08) 100%);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
 }
 
 .nav-item .nav-icon { font-size: 1.1rem; min-width: 20px; text-align: center; }
 .nav-item .nav-badge {
   margin-left: auto;
-  background: var(--red);
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
   color: white;
   font-size: 0.65rem;
-  padding: 1px 6px;
+  padding: 1px 7px;
   border-radius: 10px;
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(234, 88, 12, 0.4);
 }
 
 /* Main Content */

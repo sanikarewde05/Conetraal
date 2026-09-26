@@ -331,17 +331,17 @@ function DashboardPage() {
   const { setCurrentPage, setSelectedMine, addToast } = useApp();
 
   const kpis = [
-    { icon: '⛏️', value: stats.totalMines, label: 'Total Mines', color: 'var(--blue)', page: 'mines' },
-    { icon: '🟢', value: stats.activeMines, label: 'Active Mines', color: 'var(--green)', page: 'mines' },
-    { icon: '✅', value: stats.compliantMines, label: 'Compliant Mines', color: 'var(--green)', page: 'compliance' },
-    { icon: '❌', value: stats.nonCompliant, label: 'Non-Compliant', color: 'var(--red)', page: 'compliance' },
-    { icon: '🔴', value: stats.highRisk, label: 'High-Risk Mines', color: 'var(--red)', page: 'risk' },
-    { icon: '🚨', value: stats.criticalViolations, label: 'Critical Violations', color: 'var(--red)', page: 'violations' },
-    { icon: '🔍', value: stats.pendingInspections, label: 'Pending Inspections', color: 'var(--yellow)', page: 'inspections' },
-    { icon: '📋', value: stats.expiringPermits, label: 'Expiring/Expired Permits', color: 'var(--orange)', page: 'compliance' },
-    { icon: '⚡', value: stats.openCA, label: 'Open Corrective Actions', color: 'var(--orange)', page: 'corrective' },
-    { icon: '🏗️', value: stats.totalContractors, label: 'Contractors', color: 'var(--purple)', page: 'contractors' },
-    { icon: '👷', value: stats.totalWorkers, label: 'Workers', color: 'var(--cyan)', page: 'workers' },
+    { icon: '⛏️', value: stats.totalMines, label: 'Total Mines', color: '#fbbf24', page: 'mines' },
+    { icon: '🟢', value: stats.activeMines, label: 'Active Mines', color: '#10b981', page: 'mines' },
+    { icon: '✅', value: stats.compliantMines, label: 'Compliant Mines', color: '#10b981', page: 'compliance' },
+    { icon: '❌', value: stats.nonCompliant, label: 'Non-Compliant', color: '#ef4444', page: 'compliance' },
+    { icon: '🔴', value: stats.highRisk, label: 'High-Risk Mines', color: '#ef4444', page: 'risk' },
+    { icon: '🚨', value: stats.criticalViolations, label: 'Critical Violations', color: '#ea580c', page: 'violations' },
+    { icon: '🔍', value: stats.pendingInspections, label: 'Pending Inspections', color: '#f59e0b', page: 'inspections' },
+    { icon: '📋', value: stats.expiringPermits, label: 'Expiring/Expired Permits', color: '#f97316', page: 'compliance' },
+    { icon: '⚡', value: stats.openCA, label: 'Open Corrective Actions', color: '#f59e0b', page: 'corrective' },
+    { icon: '🏗️', value: stats.totalContractors, label: 'Contractors', color: '#d97706', page: 'contractors' },
+    { icon: '👷', value: stats.totalWorkers, label: 'Workers', color: '#eab308', page: 'workers' },
   ];
 
   // Top risk mines

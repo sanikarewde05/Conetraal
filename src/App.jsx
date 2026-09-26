@@ -1,4 +1,5 @@
-import { useState, createContext, useContext } from 'react';
+import { useState, useEffect, useRef, useMemo, createContext, useContext } from 'react';
+import L from 'leaflet';
 import './index.css';
 
 // ---- CONTEXT ----
@@ -491,99 +492,496 @@ function DashboardPage() {
 function MapPage() {
   const { setCurrentPage, setSelectedMine } = useApp();
   const [filter, setFilter] = useState('all');
+  const [stateFilter, setStateFilter] = useState('all');
+  const [tileMode, setTileMode] = useState('street'); // 'street', 'satellite', 'topo', 'osm'
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const mapContainerRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const tileLayerRef = useRef(null);
+  const markersLayerRef = useRef(null);
 
-  const filteredMines = filter === 'all' ? mines :
-    filter === 'critical' ? mines.filter(m => m.riskScore >= 80) :
-    filter === 'high' ? mines.filter(m => m.riskScore >= 60 && m.riskScore < 80) :
-    filter === 'medium' ? mines.filter(m => m.riskScore >= 40 && m.riskScore < 60) :
-    mines.filter(m => m.riskScore < 40);
+  // Filtered mines based on risk & state
+  const filteredMines = useMemo(() => {
+    return mines.filter(m => {
+      // Risk filter
+      if (filter === 'critical' && m.riskScore < 80) return false;
+      if (filter === 'high' && (m.riskScore < 60 || m.riskScore >= 80)) return false;
+      if (filter === 'medium' && (m.riskScore < 40 || m.riskScore >= 60)) return false;
+      if (filter === 'low' && m.riskScore >= 40) return false;
+      
+      // State filter
+      if (stateFilter !== 'all' && m.state !== stateFilter) return false;
+      
+      // Search term
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        return (
+          m.name.toLowerCase().includes(q) ||
+          m.state.toLowerCase().includes(q) ||
+          m.district.toLowerCase().includes(q) ||
+          m.operator.toLowerCase().includes(q) ||
+          m.id.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [filter, stateFilter, searchTerm]);
 
-  const getColor = (score) => score >= 80 ? '#ef4444' : score >= 60 ? '#f97316' : score >= 40 ? '#f59e0b' : '#10b981';
+  // Tile layers configuration - high-fidelity, public GIS services with 0 watermark
+  const tileConfigs = {
+    street: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Tiles &copy; Esri &mdash; National Geographic, DeLorme, NAVTEQ, GIS User Community',
+      maxZoom: 18
+    },
+    satellite: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, GIS User Community',
+      maxZoom: 18
+    },
+    topo: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Tiles &copy; Esri &mdash; USGS, Esri, TANA, DeLorme',
+      maxZoom: 18
+    },
+    osm: {
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }
+  };
+
+  // State centers for quick flight
+  const stateCoordinates = {
+    'all': { center: [22.9734, 82.6567], zoom: 5 },
+    'Jharkhand': { center: [23.75, 86.1], zoom: 8 },
+    'Chhattisgarh': { center: [22.35, 82.5], zoom: 8 },
+    'Odisha': { center: [21.3, 84.4], zoom: 8 },
+    'West Bengal': { center: [23.65, 87.1], zoom: 9 },
+    'Madhya Pradesh': { center: [24.15, 82.65], zoom: 9 },
+    'Maharashtra': { center: [19.95, 79.29], zoom: 9 }
+  };
+
+  // 1. Initialize Map once
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    if (mapInstanceRef.current) return;
+
+    const initialMap = L.map(mapContainerRef.current, {
+      center: [22.9734, 82.6567],
+      zoom: 5,
+      minZoom: 4,
+      maxZoom: 18,
+      zoomControl: true,
+      scrollWheelZoom: true
+    });
+
+    const activeConfig = tileConfigs[tileMode];
+    const initialTileLayer = L.tileLayer(activeConfig.url, {
+      attribution: activeConfig.attribution,
+      maxZoom: activeConfig.maxZoom
+    }).addTo(initialMap);
+
+    tileLayerRef.current = initialTileLayer;
+    markersLayerRef.current = L.layerGroup().addTo(initialMap);
+    mapInstanceRef.current = initialMap;
+
+    setTimeout(() => {
+      initialMap.invalidateSize();
+    }, 250);
+
+    return () => {
+      initialMap.remove();
+      mapInstanceRef.current = null;
+    };
+  }, []);
+
+  // 2. Handle Tile Layer switching
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+    const config = tileConfigs[tileMode];
+    tileLayerRef.current = L.tileLayer(config.url, {
+      attribution: config.attribution,
+      maxZoom: config.maxZoom
+    }).addTo(map);
+  }, [tileMode]);
+
+  // 3. Render Markers whenever filtered mines change
+  useEffect(() => {
+    if (!mapInstanceRef.current || !markersLayerRef.current) return;
+    const markersLayer = markersLayerRef.current;
+    markersLayer.clearLayers();
+
+    filteredMines.forEach(m => {
+      const riskColor = m.riskScore >= 80 ? '#dc2626' : m.riskScore >= 60 ? '#ea580c' : m.riskScore >= 40 ? '#d97706' : '#059669';
+      const riskLabel = m.riskScore >= 80 ? 'CRITICAL RISK' : m.riskScore >= 60 ? 'HIGH RISK' : m.riskScore >= 40 ? 'MEDIUM RISK' : 'LOW RISK';
+      const riskBg = m.riskScore >= 80 ? '#fef2f2' : m.riskScore >= 60 ? '#fff7ed' : m.riskScore >= 40 ? '#fefce8' : '#f0fdf4';
+      const riskBorder = m.riskScore >= 80 ? '#fca5a5' : m.riskScore >= 60 ? '#fdba74' : m.riskScore >= 40 ? '#fde047' : '#86efac';
+
+      const iconHtml = `
+        <div class="mine-marker-pin" title="${m.name} (${m.state})">
+          <div class="mine-marker-pulse" style="background: ${riskColor};"></div>
+          <div class="mine-marker-dot" style="background: ${riskColor}; border-color: #ffffff;">
+            ⛏️
+          </div>
+        </div>
+      `;
+
+      const customIcon = L.divIcon({
+        html: iconHtml,
+        className: 'custom-mine-div-icon',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        popupAnchor: [0, -14]
+      });
+
+      const marker = L.marker([m.lat, m.lng], { icon: customIcon });
+
+      // Hover Tooltip
+      marker.bindTooltip(
+        `<div style="font-weight:700; color:#0f172a;">${m.name}</div><div style="font-size:11px; color:#475569;">${m.district}, ${m.state} &bull; <b style="color:${riskColor};">${riskLabel} (${m.riskScore}/100)</b></div>`,
+        { direction: 'top', offset: [0, -10], opacity: 0.95 }
+      );
+
+      // Click Popup with rich info & button
+      const popupHtml = `
+        <div style="font-family: Inter, sans-serif; min-width: 250px; padding: 2px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <span style="font-size:11px; font-weight:700; color:#d97706; text-transform:uppercase;">${m.id} &bull; ${m.type}</span>
+            <span style="padding:2px 8px; border-radius:12px; font-size:10px; font-weight:700; background:${riskBg}; color:${riskColor}; border:1px solid ${riskBorder};">${riskLabel}</span>
+          </div>
+          <div style="font-size:14px; font-weight:700; color:#0f172a; margin-bottom:2px; line-height:1.3;">${m.name}</div>
+          <div style="font-size:12px; color:#64748b; margin-bottom:10px;">${m.district}, ${m.state} &bull; <b style="color:#334155">${m.operator}</b></div>
+          
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; background:#f8fafc; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px; font-size:11px;">
+            <div><span style="color:#64748b;">Risk Score:</span> <b style="color:${riskColor}; font-size:12px;">${m.riskScore}/100</b></div>
+            <div><span style="color:#64748b;">Compliance:</span> <b style="color:#059669; font-size:12px;">${m.complianceScore}%</b></div>
+            <div><span style="color:#64748b;">Violations:</span> <b style="color:${m.activeViolations > 0 ? '#dc2626' : '#059669'}; font-size:12px;">${m.activeViolations} Active</b></div>
+            <div><span style="color:#64748b;">Production:</span> <b style="color:#0f172a;">${m.dailyProduction.toLocaleString()} t/d</b></div>
+            <div><span style="color:#64748b;">Workers:</span> <b style="color:#0f172a;">${m.totalWorkers}</b></div>
+            <div><span style="color:#64748b;">Coordinates:</span> <b style="color:#0f172a; font-family:monospace;">${m.lat.toFixed(2)}&deg;, ${m.lng.toFixed(2)}&deg;</b></div>
+          </div>
+          
+          <button id="view-mine-btn-${m.id}" style="width:100%; padding:8px 12px; background:linear-gradient(135deg, #d97706, #ea580c); color:white; border:none; border-radius:6px; font-weight:600; font-size:12px; cursor:pointer; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3); display:flex; align-items:center; justify-content:center; gap:6px;">
+            <span>Inspect Mine Command Center</span> &rarr;
+          </button>
+        </div>
+      `;
+
+      marker.bindPopup(popupHtml, { maxWidth: 320 });
+
+      marker.on('popupopen', () => {
+        const btn = document.getElementById(`view-mine-btn-${m.id}`);
+        if (btn) {
+          btn.onclick = () => {
+            setSelectedMine(m.id);
+            setCurrentPage('mine-detail');
+          };
+        }
+      });
+
+      markersLayer.addLayer(marker);
+    });
+  }, [filteredMines]);
+
+  // Quick jump to state
+  const handleStateChange = (stateName) => {
+    setStateFilter(stateName);
+    if (mapInstanceRef.current && stateCoordinates[stateName]) {
+      const { center, zoom } = stateCoordinates[stateName];
+      mapInstanceRef.current.flyTo(center, zoom, { duration: 1.2 });
+    }
+  };
+
+  // Fly to specific mine
+  const focusOnMine = (mine) => {
+    if (!mapInstanceRef.current) return;
+    mapInstanceRef.current.flyTo([mine.lat, mine.lng], 12, { duration: 1.5 });
+    if (markersLayerRef.current) {
+      markersLayerRef.current.eachLayer(layer => {
+        if (layer.getLatLng && layer.getLatLng().lat === mine.lat && layer.getLatLng().lng === mine.lng) {
+          setTimeout(() => layer.openPopup(), 1500);
+        }
+      });
+    }
+  };
+
+  // Reset to full India view
+  const resetMap = () => {
+    setFilter('all');
+    setStateFilter('all');
+    setSearchTerm('');
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([22.9734, 82.6567], 5, { duration: 1.2 });
+    }
+  };
 
   return (
     <div>
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: 14 }}>
         <div>
           <h2>🗺️ Live Governance Map</h2>
-          <span className="subtitle">GIS-Based Mine Monitoring Across India</span>
+          <span className="subtitle">Real-Time Interactive GIS Coal Mine Surveillance &amp; Geospatial Compliance Across India</span>
+        </div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button className="btn btn-outline btn-sm" onClick={resetMap} title="Reset to all India view">
+            🎯 Reset View
+          </button>
         </div>
       </div>
-      <div className="filters-bar">
-        {['all', 'critical', 'high', 'medium', 'low'].map(f => (
-          <button key={f} className={`filter-chip ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
-            {f === 'all' ? '🗺️ All Mines' : f === 'critical' ? '🔴 Critical' : f === 'high' ? '🟠 High Risk' : f === 'medium' ? '🟡 Medium' : '🟢 Low Risk'}
-          </button>
-        ))}
-      </div>
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ height: 500, background: 'var(--bg-tertiary)', position: 'relative' }}>
-          {/* Simplified map representation */}
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 16 }}>Interactive Map — India Coal Mine Distribution</div>
-            <svg viewBox="0 0 800 600" style={{ width: '100%', maxWidth: 700, height: 'auto' }}>
-              {/* India outline simplified */}
-              <path d="M400,50 L480,80 L520,140 L540,200 L560,260 L540,340 L500,400 L460,460 L420,520 L400,560 L380,520 L340,460 L300,400 L260,340 L240,260 L260,200 L280,140 L320,80 Z" fill="none" stroke="var(--border)" strokeWidth="2" opacity="0.3" />
-              {/* State labels */}
-              <text x="420" y="180" fill="var(--text-tertiary)" fontSize="11" textAnchor="middle">Jharkhand</text>
-              <text x="350" y="250" fill="var(--text-tertiary)" fontSize="11" textAnchor="middle">Chhattisgarh</text>
-              <text x="420" y="280" fill="var(--text-tertiary)" fontSize="11" textAnchor="middle">Odisha</text>
-              <text x="480" y="200" fill="var(--text-tertiary)" fontSize="11" textAnchor="middle">W. Bengal</text>
-              <text x="310" y="200" fill="var(--text-tertiary)" fontSize="11" textAnchor="middle">M.P.</text>
-              {/* Mine markers */}
-              {filteredMines.map((m, i) => {
-                const positions = {
-                  'Jharkhand': [420 + (i%3)*20-20, 160 + (i%2)*25],
-                  'Chhattisgarh': [350 + (i%3)*20-20, 230 + (i%2)*20],
-                  'Odisha': [420 + (i%3)*18-18, 300 + (i%2)*20],
-                  'West Bengal': [480 + (i%2)*15-8, 215 + (i%2)*20],
-                  'Madhya Pradesh': [310 + (i%3)*18-18, 185 + (i%2)*15],
-                  'Maharashtra': [280, 350],
-                };
-                const [cx, cy] = positions[m.state] || [400, 300];
-                const finalX = cx + (mines.indexOf(m) % 5) * 12 - 24;
-                const finalY = cy + Math.floor(mines.indexOf(m) / 5) * 10 - 15;
-                return (
-                  <g key={m.id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedMine(m.id); setCurrentPage('mine-detail'); }}>
-                    <circle cx={finalX} cy={finalY} r="8" fill={getColor(m.riskScore)} opacity="0.8" stroke={getColor(m.riskScore)} strokeWidth="2">
-                      <animate attributeName="r" values="8;10;8" dur="2s" repeatCount="indefinite" />
-                    </circle>
-                    <circle cx={finalX} cy={finalY} r="3" fill="white" />
-                    <title>{m.name} — Risk: {m.riskScore} | Compliance: {m.complianceScore}%</title>
-                  </g>
-                );
-              })}
-            </svg>
+
+      {/* Control Bar: Risk Filters, State Selector, Search, & Tile Layers */}
+      <div className="card" style={{ padding: '12px 16px', marginBottom: 16 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Risk Level Filter Chips */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginRight: 4 }}>
+              Risk Level:
+            </span>
+            {[
+              { id: 'all', label: `🗺️ All (${mines.length})` },
+              { id: 'critical', label: `🔴 Critical (${mines.filter(m => m.riskScore >= 80).length})` },
+              { id: 'high', label: `🟠 High (${mines.filter(m => m.riskScore >= 60 && m.riskScore < 80).length})` },
+              { id: 'medium', label: `🟡 Medium (${mines.filter(m => m.riskScore >= 40 && m.riskScore < 60).length})` },
+              { id: 'low', label: `🟢 Low (${mines.filter(m => m.riskScore < 40).length})` },
+            ].map(f => (
+              <button
+                key={f.id}
+                className={`filter-chip ${filter === f.id ? 'active' : ''}`}
+                style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                onClick={() => setFilter(f.id)}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
-          {/* Legend */}
-          <div style={{ position: 'absolute', bottom: 16, left: 16, background: 'var(--bg-glass)', backdropFilter: 'blur(8px)', padding: '10px 14px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', gap: 16, fontSize: '0.72rem' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} /> Low Risk</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} /> Medium</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#f97316', display: 'inline-block' }} /> High</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} /> Critical</span>
+
+          {/* Map Layer Mode Switcher */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginRight: 4 }}>
+              Layer:
+            </span>
+            <div style={{ display: 'inline-flex', background: 'var(--bg-tertiary)', padding: 2, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+              {[
+                { id: 'street', label: '🗺️ Geographic' },
+                { id: 'satellite', label: '🛰️ Satellite' },
+                { id: 'topo', label: '⛰️ Topo' },
+                { id: 'osm', label: '🌐 OpenStreetMap' },
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setTileMode(t.id)}
+                  style={{
+                    background: tileMode === t.id ? '#ffffff' : 'transparent',
+                    color: tileMode === t.id ? '#d97706' : 'var(--text-secondary)',
+                    fontWeight: tileMode === t.id ? 700 : 500,
+                    border: 'none',
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    boxShadow: tileMode === t.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary Row: State Jump and Mine Search */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border-light)', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Region Jump:</span>
+            <select
+              value={stateFilter}
+              onChange={(e) => handleStateChange(e.target.value)}
+              className="form-select"
+              style={{ padding: '4px 8px', fontSize: '0.78rem', width: 'auto', minWidth: 160 }}
+            >
+              <option value="all">📍 All Mining Regions</option>
+              <option value="Jharkhand">Jharkhand (6 Mines)</option>
+              <option value="Chhattisgarh">Chhattisgarh (6 Mines)</option>
+              <option value="Odisha">Odisha (4 Mines)</option>
+              <option value="West Bengal">West Bengal (2 Mines)</option>
+              <option value="Madhya Pradesh">Madhya Pradesh (3 Mines)</option>
+              <option value="Maharashtra">Maharashtra (1 Mine)</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 220 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Search:</span>
+            <input
+              type="text"
+              placeholder="Search mine name, district, or operator..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="form-input"
+              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+            />
+          </div>
+
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
+            Showing <b>{filteredMines.length}</b> of {mines.length} mines on GIS grid
           </div>
         </div>
       </div>
 
-      {/* Mine list below map */}
-      <div className="card" style={{ marginTop: 16 }}>
+      {/* Real Interactive Leaflet GIS Map Card */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden', position: 'relative', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
+        <div ref={mapContainerRef} style={{ height: 560, width: '100%', background: '#e2e8f0', zIndex: 1 }} />
+
+        {/* Floating GIS HUD Panel (Top-Right) */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 14,
+            right: 14,
+            background: 'rgba(255, 255, 255, 0.94)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)',
+            padding: '10px 14px',
+            zIndex: 400,
+            fontSize: '0.72rem',
+            boxShadow: 'var(--shadow-md)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4
+          }}
+        >
+          <div style={{ fontWeight: 700, color: 'var(--text-accent)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>
+            🛰️ GIS Telemetry Active
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+            <span style={{ color: 'var(--text-tertiary)' }}>Mines Mapped:</span>
+            <b style={{ color: 'var(--text-primary)' }}>{filteredMines.length}</b>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+            <span style={{ color: 'var(--text-tertiary)' }}>Critical Hotspots:</span>
+            <b style={{ color: '#dc2626' }}>{mines.filter(m => m.riskScore >= 80).length}</b>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+            <span style={{ color: 'var(--text-tertiary)' }}>Boundary Violations:</span>
+            <b style={{ color: '#ea580c' }}>{boundaryEvents.length}</b>
+          </div>
+        </div>
+
+        {/* Floating Bottom Legend */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 16,
+            left: 16,
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(8px)',
+            padding: '8px 14px',
+            borderRadius: 'var(--radius)',
+            border: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            fontSize: '0.72rem',
+            zIndex: 400,
+            boxShadow: 'var(--shadow-md)'
+          }}
+        >
+          <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>Risk Index:</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#059669', display: 'inline-block' }} />
+            Low Risk (&lt;40)
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
+            Medium (40-59)
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ea580c', display: 'inline-block' }} />
+            High (60-79)
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#dc2626', display: 'inline-block' }} />
+            Critical (&ge;80)
+          </span>
+        </div>
+      </div>
+
+      {/* Mine list below map with Zoom-to-Mine action */}
+      <div className="card" style={{ marginTop: 20 }}>
         <div className="card-header">
-          <span className="card-title">Mine Overview ({filteredMines.length} mines)</span>
+          <div>
+            <span className="card-title">Geospatial Mine Directory ({filteredMines.length} locations)</span>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 2 }}>
+              Click any mine row or the 🎯 target icon to instantly navigate to its GPS position on the map
+            </p>
+          </div>
         </div>
         <div className="table-container">
           <table className="data-table">
-            <thead><tr><th>ID</th><th>Mine Name</th><th>State</th><th>Type</th><th>Risk</th><th>Compliance</th><th>Violations</th><th>Workers</th><th>Status</th></tr></thead>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Mine Name</th>
+                <th>State &amp; District</th>
+                <th>Coordinates (Lat, Lng)</th>
+                <th>Type</th>
+                <th>Risk Score</th>
+                <th>Compliance</th>
+                <th>Open Violations</th>
+                <th>Daily Production</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'center' }}>Map Action</th>
+              </tr>
+            </thead>
             <tbody>
               {filteredMines.map(m => (
-                <tr key={m.id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedMine(m.id); setCurrentPage('mine-detail'); }}>
+                <tr key={m.id} style={{ cursor: 'pointer' }} onClick={() => focusOnMine(m)}>
                   <td style={{ fontWeight: 600, color: 'var(--text-accent)' }}>{m.id}</td>
-                  <td style={{ fontWeight: 500 }}>{m.name}</td>
-                  <td>{m.state}</td>
+                  <td style={{ fontWeight: 600 }}>{m.name}</td>
+                  <td>{m.district}, {m.state}</td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    {m.lat.toFixed(4)}°N, {m.lng.toFixed(4)}°E
+                  </td>
                   <td><span className="badge badge-blue">{m.type}</span></td>
-                  <td><span className={`badge ${m.riskScore >= 80 ? 'severity-critical' : m.riskScore >= 60 ? 'severity-high' : m.riskScore >= 40 ? 'severity-medium' : 'severity-low'}`}>{m.riskScore}/100</span></td>
-                  <td><span className={`badge ${m.complianceScore >= 80 ? 'badge-green' : m.complianceScore >= 60 ? 'badge-yellow' : 'badge-red'}`}>{m.complianceScore}%</span></td>
-                  <td>{m.activeViolations}</td>
-                  <td>{m.totalWorkers}</td>
-                  <td><span className={`badge ${m.status === 'Active' ? 'badge-green' : 'badge-red'}`}>{m.status}</span></td>
+                  <td>
+                    <span className={`badge ${m.riskScore >= 80 ? 'severity-critical' : m.riskScore >= 60 ? 'severity-high' : m.riskScore >= 40 ? 'severity-medium' : 'severity-low'}`}>
+                      {m.riskScore}/100
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`badge ${m.complianceScore >= 80 ? 'badge-green' : m.complianceScore >= 60 ? 'badge-yellow' : 'badge-red'}`}>
+                      {m.complianceScore}%
+                    </span>
+                  </td>
+                  <td>
+                    <span style={{ fontWeight: 600, color: m.activeViolations > 0 ? 'var(--red)' : 'var(--green)' }}>
+                      {m.activeViolations}
+                    </span>
+                  </td>
+                  <td>{m.dailyProduction.toLocaleString()} tonnes</td>
+                  <td>
+                    <span className={`badge ${m.status === 'Active' ? 'badge-green' : 'badge-red'}`}>{m.status}</span>
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button
+                      className="btn btn-sm btn-outline"
+                      style={{ padding: '3px 8px', fontSize: '0.72rem' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        focusOnMine(m);
+                      }}
+                      title="Focus on map"
+                    >
+                      🎯 Locate
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -924,8 +924,8 @@ a:hover { text-decoration: underline; }
 
 .copilot-suggestion:hover { border-color: var(--blue); color: var(--blue); }
 
-/* ========== DEMO MODE ========== */
-.demo-banner {
+/* ========== SYSTEM BANNER & ACTIONS ========== */
+.system-banner {
   background: linear-gradient(90deg, #9a3412 0%, #c2410c 25%, #ea580c 50%, #d97706 75%, #b45309 100%);
   padding: 7px 16px;
   text-align: center;
@@ -941,7 +941,7 @@ a:hover { text-decoration: underline; }
   border-bottom: 1px solid rgba(245, 158, 11, 0.3);
 }
 
-.demo-panel {
+.action-panel {
   background: var(--bg-secondary);
   border: 1px solid rgba(245, 158, 11, 0.35);
   border-radius: var(--radius-xl);
@@ -950,7 +950,7 @@ a:hover { text-decoration: underline; }
   box-shadow: 0 0 25px rgba(245, 158, 11, 0.1);
 }
 
-.demo-panel h3 {
+.action-panel h3 {
   font-size: 1rem;
   font-weight: 700;
   color: var(--coal-gold);
@@ -960,13 +960,13 @@ a:hover { text-decoration: underline; }
   gap: 8px;
 }
 
-.demo-buttons {
+.action-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 8px;
 }
 
-.demo-btn {
+.action-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -981,10 +981,10 @@ a:hover { text-decoration: underline; }
   font-family: inherit;
 }
 
-.demo-btn:hover {
+.action-btn:hover {
   background: var(--purple-bg);
-  border-color: var(--purple-border);
-  color: var(--purple);
+  border-color: var(--blue);
+  color: var(--text-primary);
 }
 
 /* ========== LOGIN ========== */
@@ -1047,13 +1047,13 @@ a:hover { text-decoration: underline; }
   margin-bottom: 28px;
 }
 
-.login-demo-accounts {
+.login-quick-accounts {
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
 
-.login-demo-accounts p {
+.login-quick-accounts p {
   font-size: 0.72rem;
   color: var(--text-tertiary);
   margin-bottom: 8px;
@@ -1062,7 +1062,7 @@ a:hover { text-decoration: underline; }
   font-weight: 600;
 }
 
-.demo-account-btn {
+.quick-account-btn {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1078,14 +1078,14 @@ a:hover { text-decoration: underline; }
   color: var(--text-primary);
 }
 
-.demo-account-btn:hover {
+.quick-account-btn:hover {
   border-color: var(--blue);
   background: var(--blue-bg);
 }
 
-.demo-account-btn .demo-avatar { font-size: 1.2rem; }
-.demo-account-btn .demo-name { font-size: 0.82rem; font-weight: 500; }
-.demo-account-btn .demo-role { font-size: 0.68rem; color: var(--text-tertiary); }
+.account-avatar { font-size: 1.2rem; }
+.account-name { font-size: 0.82rem; font-weight: 500; }
+.account-role { font-size: 0.68rem; color: var(--text-tertiary); }
 
 /* ========== NOTIFICATION PANEL ========== */
 .notification-panel {

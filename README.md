@@ -106,13 +106,13 @@
 
 ---
 
-## 🎯 Evaluator Demo Guide (SIH Presentation)
+## 🎯 Evaluator Presentation Guide (SIH Submission)
 
-When demonstrating the platform to judges or evaluators:
+When presenting the platform to judges or evaluators:
 1. Log in using the **Quick Login** buttons on the login screen (choose any of the 4 roles).
-2. Click the **🎯 Demo Mode** button in the top navigation bar to open the **Evaluator Quick Actions Panel**:
+2. Click the **⚡ Quick Actions** button in the top navigation bar to open the **Evaluator Quick Actions Panel**:
    - **Action 1: Detect PPE Violation** — Jumps to the AI Computer Vision feed showing active bounding box detections.
-   - **Action 2: Generate Violation Ticket** — Demonstrates end-to-end evidence capture and statutory citation.
+   - **Action 2: Generate Violation Ticket** — Triggers end-to-end evidence capture and statutory citation.
    - **Action 3: Geo-tagged Evidence** — Interactively shows the violation coordinates mapped on the GIS module.
    - **Action 4: AI Risk Prediction** — Triggers the predictive hazard model forecasting risks for high-hazard mines.
    - **Action 5: Permit Alert** — Simulates an expiring DGMS explosive clearance notice.

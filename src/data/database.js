@@ -5,12 +5,12 @@
 
 // ---- USERS ----
 export const users = [
-  { id: 'U001', name: 'Dr. Arvind Kumar', email: 'arvind@gov.in', password: 'demo123', role: 'government', avatar: '👨‍💼', department: 'Ministry of Coal', designation: 'Director General of Mines Safety' },
-  { id: 'U002', name: 'Rajesh Sharma', email: 'rajesh@minecorp.in', password: 'demo123', role: 'mine_manager', avatar: '👷', department: 'Coal India Ltd', designation: 'Mine Manager', mineId: 'M001' },
-  { id: 'U003', name: 'Priya Singh', email: 'priya@safety.in', password: 'demo123', role: 'safety_officer', avatar: '👩‍🔬', department: 'DGMS', designation: 'Senior Safety Officer', mineId: 'M001' },
-  { id: 'U004', name: 'Rahul Verma', email: 'rahul@inspect.in', password: 'demo123', role: 'inspector', avatar: '🔍', department: 'DGMS', designation: 'Field Inspector', mineId: 'M001' },
-  { id: 'U005', name: 'Sunita Devi', email: 'sunita@gov.in', password: 'demo123', role: 'government', avatar: '👩‍💼', department: 'Ministry of Coal', designation: 'Joint Secretary' },
-  { id: 'U006', name: 'Amit Patel', email: 'amit@minecorp.in', password: 'demo123', role: 'mine_manager', avatar: '👷', department: 'SECL', designation: 'Mine Manager', mineId: 'M005' },
+  { id: 'U001', name: 'Dr. Arvind Kumar', email: 'arvind@gov.in', password: 'mine123', role: 'government', avatar: '👨‍💼', department: 'Ministry of Coal', designation: 'Director General of Mines Safety' },
+  { id: 'U002', name: 'Rajesh Sharma', email: 'rajesh@minecorp.in', password: 'mine123', role: 'mine_manager', avatar: '👷', department: 'Coal India Ltd', designation: 'Mine Manager', mineId: 'M001' },
+  { id: 'U003', name: 'Priya Singh', email: 'priya@safety.in', password: 'mine123', role: 'safety_officer', avatar: '👩‍🔬', department: 'DGMS', designation: 'Senior Safety Officer', mineId: 'M001' },
+  { id: 'U004', name: 'Rahul Verma', email: 'rahul@inspect.in', password: 'mine123', role: 'inspector', avatar: '🔍', department: 'DGMS', designation: 'Field Inspector', mineId: 'M001' },
+  { id: 'U005', name: 'Sunita Devi', email: 'sunita@gov.in', password: 'mine123', role: 'government', avatar: '👩‍💼', department: 'Ministry of Coal', designation: 'Joint Secretary' },
+  { id: 'U006', name: 'Amit Patel', email: 'amit@minecorp.in', password: 'mine123', role: 'mine_manager', avatar: '👷', department: 'SECL', designation: 'Mine Manager', mineId: 'M005' },
 ];
 
 // ---- MINES ----

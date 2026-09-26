@@ -17,8 +17,8 @@ export default function App() {
   const [toasts, setToasts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
-  const [demoMode, setDemoMode] = useState(true);
-  const [showDemoPanel, setShowDemoPanel] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
+  const [showActionPanel, setShowActionPanel] = useState(false);
   const [drawerData, setDrawerData] = useState(null);
 
   const addToast = (type, title, message) => {
@@ -33,7 +33,7 @@ export default function App() {
     setShowSearch(false);
   };
 
-  const ctx = { currentUser, setCurrentUser, currentPage, setCurrentPage: navigate, selectedMine, setSelectedMine, showNotifications, setShowNotifications, showCopilot, setShowCopilot, toasts, addToast, searchQuery, setSearchQuery, showSearch, setShowSearch, demoMode, setDemoMode, showDemoPanel, setShowDemoPanel, drawerData, setDrawerData };
+  const ctx = { currentUser, setCurrentUser, currentPage, setCurrentPage: navigate, selectedMine, setSelectedMine, showNotifications, setShowNotifications, showCopilot, setShowCopilot, toasts, addToast, searchQuery, setSearchQuery, showSearch, setShowSearch, showBanner, setShowBanner, showActionPanel, setShowActionPanel, drawerData, setDrawerData };
 
   if (!currentUser) return <AppContext.Provider value={ctx}><LoginPage /></AppContext.Provider>;
 
@@ -42,7 +42,7 @@ export default function App() {
       <div className="app-layout">
         <Sidebar />
         <div className="main-content">
-          {demoMode && <div className="demo-banner">🎯 DEMO MODE — CONETRAAL Prototype | Smart India Hackathon 2026 | SIH26024</div>}
+          {showBanner && <div className="system-banner">⚡ CONETRAAL — National Mine Governance & Compliance Monitoring System | Smart India Hackathon 2026 | SIH26024</div>}
           <Topbar />
           <Breadcrumbs />
           <div className="page-content animate-in" key={currentPage}>
@@ -72,7 +72,7 @@ function LoginPage() {
     e.preventDefault();
     const user = users.find(u => u.email === email && u.password === password);
     if (user) { setCurrentUser(user); }
-    else { setError('Invalid credentials. Try a demo account below.'); }
+    else { setError('Invalid credentials. Select an authorized account below.'); }
   };
 
   const quickLogin = (user) => { setCurrentUser(user); };
@@ -109,14 +109,14 @@ function LoginPage() {
           {error && <p style={{ color: 'var(--red)', fontSize: '0.78rem', marginBottom: 12 }}>{error}</p>}
           <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>Sign In</button>
         </form>
-        <div className="login-demo-accounts">
-          <p>Quick Demo Access</p>
+        <div className="login-quick-accounts">
+          <p>Authorized Role Access</p>
           {users.slice(0, 4).map(u => (
-            <button key={u.id} className="demo-account-btn" onClick={() => quickLogin(u)}>
-              <span className="demo-avatar">{u.avatar}</span>
+            <button key={u.id} className="quick-account-btn" onClick={() => quickLogin(u)}>
+              <span className="account-avatar">{u.avatar}</span>
               <div>
-                <div className="demo-name">{u.name}</div>
-                <div className="demo-role">{roleLabels[u.role] || u.role}</div>
+                <div className="account-name">{u.name}</div>
+                <div className="account-role">{roleLabels[u.role] || u.role}</div>
               </div>
             </button>
           ))}
@@ -203,7 +203,7 @@ function Sidebar() {
 
 // ============== TOPBAR ==============
 function Topbar() {
-  const { currentUser, showNotifications, setShowNotifications, searchQuery, setSearchQuery, showSearch, setShowSearch, setCurrentPage, setShowDemoPanel, showDemoPanel } = useApp();
+  const { currentUser, showNotifications, setShowNotifications, searchQuery, setSearchQuery, showSearch, setShowSearch, setCurrentPage, setShowActionPanel, showActionPanel } = useApp();
   const unreadCount = notifData.filter(n => !n.read).length;
 
   const searchResults = searchQuery.length > 1 ? [
@@ -231,7 +231,7 @@ function Topbar() {
         )}
       </div>
       <div className="topbar-actions">
-        <button className="topbar-btn" onClick={() => setShowDemoPanel(!showDemoPanel)} title="Demo Mode">🎯</button>
+        <button className="topbar-btn" onClick={() => setShowActionPanel(!showActionPanel)} title="Quick Actions">⚡</button>
         <button className="topbar-btn" onClick={() => setShowNotifications(!showNotifications)} title="Notifications">
           🔔 {unreadCount > 0 && <span className="badge-dot" />}
         </button>
@@ -262,10 +262,10 @@ function Breadcrumbs() {
 
 // ============== PAGE RENDERER ==============
 function PageRenderer() {
-  const { currentPage, showDemoPanel } = useApp();
+  const { currentPage, showActionPanel } = useApp();
   return (
     <>
-      {showDemoPanel && <DemoPanel />}
+      {showActionPanel && <ActionPanel />}
       {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'map' && <MapPage />}
       {currentPage === 'mines' && <MinesPage />}
@@ -295,10 +295,10 @@ function PageRenderer() {
   );
 }
 
-// ============== DEMO PANEL ==============
-function DemoPanel() {
+// ============== ACTION PANEL ==============
+function ActionPanel() {
   const { addToast, setCurrentPage, setSelectedMine, setShowCopilot } = useApp();
-  const demos = [
+  const scenarios = [
     { icon: '👁️', label: '1. Detect PPE Violation', action: () => { setCurrentPage('ppe'); addToast('critical', 'PPE Violation', 'AI detected missing helmet at Mine Jharia Block A, Zone 4'); }},
     { icon: '🚨', label: '2. Generate Violation', action: () => { setCurrentPage('violations'); addToast('high', 'New Violation', 'Violation V001 created for PPE non-compliance'); }},
     { icon: '📍', label: '3. Show Geo-tagged Evidence', action: () => { setCurrentPage('map'); addToast('info', 'Evidence Located', 'Geo-tagged evidence displayed on map'); }},
@@ -312,11 +312,11 @@ function DemoPanel() {
   ];
 
   return (
-    <div className="demo-panel">
-      <h3>🎯 Demo Mode — Quick Demonstrations</h3>
-      <div className="demo-buttons">
-        {demos.map((d, i) => (
-          <button key={i} className="demo-btn" onClick={d.action}>
+    <div className="action-panel">
+      <h3>⚡ Quick Actions — Feature Scenarios</h3>
+      <div className="action-buttons">
+        {scenarios.map((d, i) => (
+          <button key={i} className="action-btn" onClick={d.action}>
             <span>{d.icon}</span> {d.label}
           </button>
         ))}

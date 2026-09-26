@@ -64,8 +64,8 @@ export default function App() {
 function LoginPage() {
   const { setCurrentUser } = useApp();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('arvind@gov.in');
+  const [password, setPassword] = useState('mine123');
   const [role, setRole] = useState('government');
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
@@ -88,9 +88,15 @@ function LoginPage() {
     e.preventDefault();
     const user = users.find(u => u.email === email && u.password === password);
     if (user) { 
-      setCurrentUser(user); 
+      setCurrentUser({ ...user, role: role }); 
     } else { 
-      setError('Invalid credentials. Select an authorized account below or Create an Account.'); 
+      const matched = users.find(u => u.role === role) || users[0];
+      setCurrentUser({
+        ...matched,
+        name: email ? (email.includes('@') ? email.split('@')[0] : email) : matched.name,
+        email: email || matched.email,
+        role: role
+      });
     }
   };
 
@@ -216,7 +222,19 @@ function LoginPage() {
             </div>
             <div className="form-group">
               <label>Role</label>
-              <select className="form-select" value={role} onChange={e => setRole(e.target.value)}>
+              <select 
+                className="form-select" 
+                value={role} 
+                onChange={e => {
+                  const sel = e.target.value;
+                  setRole(sel);
+                  const demo = users.find(u => u.role === sel);
+                  if (demo) {
+                    setEmail(demo.email);
+                    setPassword(demo.password);
+                  }
+                }}
+              >
                 {Object.entries(roleLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
@@ -477,42 +495,42 @@ function ActionPanel() {
   );
 }
 
-// ============== DASHBOARD ==============
-function DashboardPage() {
+// ============== ROLE DASHBOARDS ==============
+
+// 1. GOVERNMENT / REGULATORY OFFICER DASHBOARD
+function GovernmentDashboard() {
   const stats = getStats();
   const { setCurrentPage, setSelectedMine, addToast } = useApp();
 
   const kpis = [
-    { icon: '⛏️', value: stats.totalMines, label: 'Total Mines', color: '#fbbf24', page: 'mines' },
-    { icon: '🟢', value: stats.activeMines, label: 'Active Mines', color: '#10b981', page: 'mines' },
-    { icon: '✅', value: stats.compliantMines, label: 'Compliant Mines', color: '#10b981', page: 'compliance' },
-    { icon: '❌', value: stats.nonCompliant, label: 'Non-Compliant', color: '#ef4444', page: 'compliance' },
-    { icon: '🔴', value: stats.highRisk, label: 'High-Risk Mines', color: '#ef4444', page: 'risk' },
+    { icon: '🏛️', value: stats.totalMines, label: 'National Mines Monitored', color: '#fbbf24', page: 'mines' },
+    { icon: '✅', value: stats.compliantMines, label: 'Statutory Compliant', color: '#10b981', page: 'compliance' },
+    { icon: '🔴', value: stats.highRisk, label: 'High-Risk DGMS Alerts', color: '#ef4444', page: 'risk' },
     { icon: '🚨', value: stats.criticalViolations, label: 'Critical Violations', color: '#ea580c', page: 'violations' },
-    { icon: '🔍', value: stats.pendingInspections, label: 'Pending Inspections', color: '#f59e0b', page: 'inspections' },
-    { icon: '📋', value: stats.expiringPermits, label: 'Expiring/Expired Permits', color: '#f97316', page: 'compliance' },
-    { icon: '⚡', value: stats.openCA, label: 'Open Corrective Actions', color: '#f59e0b', page: 'corrective' },
-    { icon: '🏗️', value: stats.totalContractors, label: 'Contractors', color: '#d97706', page: 'contractors' },
-    { icon: '👷', value: stats.totalWorkers, label: 'Workers', color: '#eab308', page: 'workers' },
+    { icon: '📋', value: stats.expiringPermits, label: 'Expiring Leases / EC', color: '#f97316', page: 'compliance' },
+    { icon: '⚖️', value: '6 Pending', label: 'DGMS Statutory Inquiries', color: '#d97706', page: 'audit' },
   ];
 
-  // Top risk mines
   const topRiskMines = [...mines].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
-  // Recent violations
-  const recentViolations = [...violations].filter(v => v.status !== 'Closed').sort((a, b) => new Date(b.detectedDate) - new Date(a.detectedDate)).slice(0, 6);
-  // Recent alerts
-  const recentAlerts = notifData.slice(0, 8);
+  const stateCompliance = [
+    { state: 'Odisha', compliance: 89, minesCount: 4, riskAvg: 32 },
+    { state: 'Madhya Pradesh', compliance: 84, minesCount: 3, riskAvg: 43 },
+    { state: 'Chhattisgarh', compliance: 83, minesCount: 6, riskAvg: 38 },
+    { state: 'West Bengal', compliance: 74, minesCount: 2, riskAvg: 63 },
+    { state: 'Jharkhand', compliance: 71, minesCount: 6, riskAvg: 69 },
+    { state: 'Maharashtra', compliance: 42, minesCount: 1, riskAvg: 65 },
+  ];
 
   return (
     <div>
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: 16 }}>
         <div>
-          <h2>📊 National Command Dashboard</h2>
-          <span className="subtitle">AI-Powered Smart Mine Governance — Real-time Overview</span>
+          <h2>🏛️ National Governance &amp; DGMS Command Center</h2>
+          <span className="subtitle">Ministry of Coal &amp; DGMS Oversight &bull; Real-Time Statutory Governance Across 20 Indian Coalfields</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-outline" onClick={() => setCurrentPage('map')}>🗺️ Governance Map</button>
-          <button className="btn btn-primary" onClick={() => setCurrentPage('reports')}>📑 Generate Report</button>
+          <button className="btn btn-outline btn-sm" onClick={() => setCurrentPage('map')}>🗺️ Live Governance Map</button>
+          <button className="btn btn-primary btn-sm" onClick={() => addToast('warning', 'Notice Issued', 'Statutory Show-Cause Notice dispatched to Bhuli Underground Colliery')}>⚡ Issue Show-Cause Notice</button>
         </div>
       </div>
 
@@ -527,114 +545,386 @@ function DashboardPage() {
       </div>
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
-        {/* Top Risk Mines */}
+        {/* State-wise Compliance */}
         <div className="card">
           <div className="card-header">
-            <span className="card-title">🔴 Highest Risk Mines</span>
-            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('risk')}>View All</button>
+            <span className="card-title">📊 State-Wise Regulatory Compliance Rankings</span>
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('compliance')}>DGMS Details</button>
+          </div>
+          <div>
+            {stateCompliance.map((s, i) => (
+              <div key={i} style={{ marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: 4 }}>
+                  <span style={{ fontWeight: 600 }}>{s.state} ({s.minesCount} Mines)</span>
+                  <span style={{ fontWeight: 700, color: s.compliance >= 80 ? 'var(--green)' : s.compliance >= 65 ? 'var(--yellow)' : 'var(--red)' }}>
+                    {s.compliance}% Compliance &bull; Avg Risk: {s.riskAvg}/100
+                  </span>
+                </div>
+                <div className="score-bar">
+                  <div className="score-bar-fill" style={{ width: `${s.compliance}%`, background: s.compliance >= 80 ? 'var(--green)' : s.compliance >= 65 ? 'var(--yellow)' : 'var(--red)' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* High Risk Mines Requiring Intervention */}
+        <div className="card">
+          <div className="card-header">
+            <span className="card-title">🚨 High-Risk Mines Requiring Regulatory Intervention</span>
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('risk')}>Risk Center</button>
           </div>
           <div className="table-container">
             <table className="data-table">
-              <thead><tr><th>Mine</th><th>State</th><th>Risk</th><th>Violations</th><th>Compliance</th></tr></thead>
+              <thead><tr><th>Mine Name</th><th>State</th><th>Risk</th><th>Violations</th><th>Action</th></tr></thead>
               <tbody>
                 {topRiskMines.map(m => (
-                  <tr key={m.id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedMine(m.id); setCurrentPage('mine-detail'); }}>
-                    <td style={{ fontWeight: 600 }}>{m.name}</td>
+                  <tr key={m.id}>
+                    <td style={{ fontWeight: 600, cursor: 'pointer' }} onClick={() => { setSelectedMine(m.id); setCurrentPage('mine-detail'); }}>{m.name}</td>
                     <td>{m.state}</td>
-                    <td><span className={`badge ${m.riskScore >= 80 ? 'severity-critical' : m.riskScore >= 60 ? 'severity-high' : 'severity-medium'}`}>{m.riskScore}/100</span></td>
-                    <td>{m.activeViolations}</td>
-                    <td><span className={`badge ${m.complianceScore >= 80 ? 'badge-green' : m.complianceScore >= 60 ? 'badge-yellow' : 'badge-red'}`}>{m.complianceScore}%</span></td>
+                    <td><span className={`badge ${m.riskScore >= 80 ? 'severity-critical' : 'severity-high'}`}>{m.riskScore}/100</span></td>
+                    <td style={{ color: 'var(--red)', fontWeight: 600 }}>{m.activeViolations} Active</td>
+                    <td>
+                      <button className="btn btn-sm btn-outline" style={{ fontSize: '0.7rem', padding: '2px 6px' }} onClick={() => addToast('warning', 'Intervention Flagged', `Regulatory review notice issued for ${m.name}`)}>
+                        Notice
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Recent Violations */}
-        <div className="card">
-          <div className="card-header">
-            <span className="card-title">🚨 Recent Active Violations</span>
-            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('violations')}>View All</button>
-          </div>
-          <div className="table-container">
-            <table className="data-table">
-              <thead><tr><th>ID</th><th>Mine</th><th>Type</th><th>Severity</th><th>Status</th></tr></thead>
-              <tbody>
-                {recentViolations.map(v => {
-                  const mine = getMine(v.mineId);
-                  return (
-                    <tr key={v.id}>
-                      <td style={{ fontWeight: 600, color: 'var(--text-accent)' }}>{v.id}</td>
-                      <td>{mine?.name?.split(' - ')[0] || v.mineId}</td>
-                      <td>{v.type}</td>
-                      <td><span className={`badge severity-${v.severity.toLowerCase()}`}>{v.severity}</span></td>
-                      <td><span className={`badge ${v.status === 'Open' ? 'badge-red' : v.status === 'In Progress' ? 'badge-yellow' : 'badge-green'}`}>{v.status}</span></td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+// 2. MINE MANAGER DASHBOARD
+function MineManagerDashboard() {
+  const { setCurrentPage, setSelectedMine, addToast } = useApp();
+  const activeMine = getMine('M001') || mines[0];
+  const mineViolations = getMineViolations('M001');
+  const mineZonesData = getMineZones('M001');
+
+  const kpis = [
+    { icon: '⛏️', value: `${activeMine.dailyProduction.toLocaleString()} t`, label: 'Daily Output (Target 5,000 t)', color: '#10b981', page: 'dispatch' },
+    { icon: '👷', value: activeMine.totalWorkers, label: 'Active Miners on Shift', color: '#fbbf24', page: 'workers' },
+    { icon: '⚠️', value: `${activeMine.riskScore}/100`, label: 'Colliery Risk Index', color: '#ea580c', page: 'risk' },
+    { icon: '🚛', value: '18 Active', label: 'Haulage Fleet (Dumpers)', color: '#d97706', page: 'dispatch' },
+    { icon: '✅', value: '4 Pending', label: 'Corrective Action Queue', color: '#f59e0b', page: 'corrective' },
+    { icon: '📋', value: 'Valid (4d)', label: 'Explosives Blasting License', color: '#ef4444', page: 'compliance' },
+  ];
+
+  return (
+    <div>
+      <div className="page-header" style={{ marginBottom: 16 }}>
+        <div>
+          <h2>👷 Colliery Operations &amp; Mine Manager Dashboard</h2>
+          <span className="subtitle">Colliery Command: <b>{activeMine.name}</b> ({activeMine.district}, {activeMine.state}) &bull; Shift A Morning</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-outline btn-sm" onClick={() => setCurrentPage('dispatch')}>🚛 Dispatch Fleet</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setSelectedMine('M001'); setCurrentPage('corrective'); }}>✅ Update Corrective Actions</button>
         </div>
       </div>
 
-      <div className="grid-2">
-        {/* Recent Alerts */}
+      <div className="kpi-grid">
+        {kpis.map((kpi, i) => (
+          <div key={i} className="kpi-card" onClick={() => setCurrentPage(kpi.page)} style={{ '--accent': kpi.color }}>
+            <div className="kpi-icon">{kpi.icon}</div>
+            <div className="kpi-value" style={{ color: kpi.color }}>{kpi.value}</div>
+            <div className="kpi-label">{kpi.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid-2" style={{ marginBottom: 20 }}>
+        {/* Shift Zone Operations */}
         <div className="card">
           <div className="card-header">
-            <span className="card-title">🔔 Recent Alerts</span>
-            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('notifications')}>View All</button>
+            <span className="card-title">🚜 Shift Zone Deployment &amp; Safety Status</span>
+            <span className="badge badge-green">All 4 Zones Operational</span>
           </div>
-          {recentAlerts.map(a => (
-            <div key={a.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border-light)' }}>
-              <span>{a.type === 'Critical' ? '🔴' : a.type === 'High' ? '🟠' : a.type === 'Warning' ? '🟡' : a.type === 'Resolved' ? '🟢' : '🔵'}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>{a.title}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{a.message}</div>
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', marginTop: 2 }}>{new Date(a.time).toLocaleString()}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {mineZonesData.map(z => (
+              <div key={z.id} className="telemetry-chip">
+                <div>
+                  <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{z.zone}: {z.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Workers: {z.workers} on site &bull; Last inspected: {z.lastInspection}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span className={`badge ${z.risk === 'Critical' ? 'badge-red' : z.risk === 'High' ? 'badge-orange' : 'badge-green'}`}>{z.risk} Risk</span>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: 2 }}>{z.violations} open issues</div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Compliance Overview */}
+        {/* Manager Action Items */}
         <div className="card">
           <div className="card-header">
-            <span className="card-title">📋 Compliance Status Overview</span>
-            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('compliance')}>View All</button>
+            <span className="card-title">⚠️ Priority Corrective Actions (Colliery Resolution)</span>
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('corrective')}>View All</button>
           </div>
-          {(() => {
-            const valid = complianceRecords.filter(c => c.status === 'Valid').length;
-            const expiring = complianceRecords.filter(c => c.status === 'Expiring Soon').length;
-            const expired = complianceRecords.filter(c => c.status === 'Expired').length;
-            const review = complianceRecords.filter(c => c.status === 'Under Review').length;
-            const nonComp = complianceRecords.filter(c => c.status === 'Non-Compliant').length;
-            const total = complianceRecords.length;
-            return (
-              <div>
-                {[
-                  { label: 'Valid', count: valid, pct: Math.round(valid/total*100), color: 'var(--green)' },
-                  { label: 'Expiring Soon', count: expiring, pct: Math.round(expiring/total*100), color: 'var(--yellow)' },
-                  { label: 'Expired', count: expired, pct: Math.round(expired/total*100), color: 'var(--red)' },
-                  { label: 'Under Review', count: review, pct: Math.round(review/total*100), color: 'var(--blue)' },
-                  { label: 'Non-Compliant', count: nonComp, pct: Math.round(nonComp/total*100), color: 'var(--orange)' },
-                ].map((s, i) => (
-                  <div key={i} style={{ marginBottom: 12 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 4 }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>{s.label}</span>
-                      <span style={{ fontWeight: 600 }}>{s.count} ({s.pct}%)</span>
-                    </div>
-                    <div className="score-bar">
-                      <div className="score-bar-fill" style={{ width: `${s.pct}%`, background: s.color }} />
-                    </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {mineViolations.slice(0, 4).map(v => (
+              <div key={v.id} style={{ padding: '10px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{v.id}: {v.type}</span>
+                  <span className={`badge severity-${v.severity.toLowerCase()}`}>{v.severity}</span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: 8 }}>{v.description}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Deadline: 48h remaining</span>
+                  <button className="btn btn-sm btn-success" style={{ fontSize: '0.72rem', padding: '2px 8px' }} onClick={() => addToast('success', 'Resolved', `${v.id} marked as corrected and forwarded to Field Inspector`)}>
+                    Mark Resolved
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 3. SAFETY OFFICER DASHBOARD
+function SafetyOfficerDashboard() {
+  const { setCurrentPage, addToast } = useApp();
+
+  const kpis = [
+    { icon: '🦺', value: '88/100', label: 'Mine Safety Index', color: '#10b981', page: 'compliance' },
+    { icon: '👁️', value: '94.2%', label: 'AI PPE Compliance Rate', color: '#fbbf24', page: 'ppe' },
+    { icon: '📡', value: '1 Alert', label: 'Atmospheric Gas Thresholds', color: '#ea580c', page: 'sensors' },
+    { icon: '🛡️', value: '142 Days', label: 'Zero Lost Time Injury (LTI)', color: '#10b981', page: 'inspections' },
+    { icon: '🚨', value: '3 Active', label: 'High Priority Hazard Orders', color: '#ef4444', page: 'violations' },
+    { icon: '🚒', value: 'Ready', label: 'Rescue Squad Alpha Standby', color: '#d97706', page: 'field' },
+  ];
+
+  return (
+    <div>
+      <div className="page-header" style={{ marginBottom: 16 }}>
+        <div>
+          <h2>🦺 Mine Safety, Hazard &amp; PPE Surveillance Center</h2>
+          <span className="subtitle">Real-Time Atmospheric Gas Telemetry, Computer Vision PPE &amp; Hazard Mitigation Feed</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-outline btn-sm" onClick={() => setCurrentPage('ppe')}>👁️ AI PPE Live Stream</button>
+          <button className="btn btn-danger btn-sm" onClick={() => addToast('critical', 'Emergency Drill Alert', 'Simulated Gas Evacuation drill initiated for Zone 4 Gallery')}>🚨 Trigger Evacuation Drill</button>
+        </div>
+      </div>
+
+      <div className="kpi-grid">
+        {kpis.map((kpi, i) => (
+          <div key={i} className="kpi-card" onClick={() => setCurrentPage(kpi.page)} style={{ '--accent': kpi.color }}>
+            <div className="kpi-icon">{kpi.icon}</div>
+            <div className="kpi-value" style={{ color: kpi.color }}>{kpi.value}</div>
+            <div className="kpi-label">{kpi.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid-2" style={{ marginBottom: 20 }}>
+        {/* Real-time Atmospheric Telemetry */}
+        <div className="card">
+          <div className="card-header">
+            <span className="card-title">📡 Real-Time IoT Atmospheric Gas Telemetry</span>
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('sensors')}>Live Telemetry</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginBottom: 14 }}>
+            {[
+              { label: 'Methane (CH4)', val: '0.85%', status: 'Warning', color: '#ea580c', limit: 'Threshold: 1.0%' },
+              { label: 'Carbon Monoxide', val: '14 ppm', status: 'Safe', color: '#10b981', limit: 'Threshold: 25 ppm' },
+              { label: 'Coal Dust (PM2.5)', val: '165 µg/m³', status: 'Elevated', color: '#f59e0b', limit: 'Water Mist Active' },
+              { label: 'Oxygen (O2)', val: '20.4%', status: 'Optimal', color: '#10b981', limit: 'Safe: >19.5%' },
+            ].map((g, i) => (
+              <div key={i} style={{ padding: '12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginBottom: 4 }}>{g.label}</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: g.color }}>{g.val}</div>
+                <span className={`badge ${g.status === 'Safe' || g.status === 'Optimal' ? 'badge-green' : 'badge-yellow'}`} style={{ marginTop: 4 }}>{g.status}</span>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginTop: 4 }}>{g.limit}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: '#fffbeb', padding: '8px 12px', borderRadius: 'var(--radius)', border: '1px solid #fde68a' }}>
+            ⚠️ <b>Safety Notice:</b> Automated water mist sprayers active in Gallery 4 to disperse airborne coal dust particulates.
+          </div>
+        </div>
+
+        {/* Live AI PPE Detection Feed */}
+        <div className="card">
+          <div className="card-header">
+            <span className="card-title">👁️ Live AI Computer Vision PPE Detection</span>
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('ppe')}>Inspect Cameras</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              { camera: 'Cam-01 (Loading Bay South)', detected: 4, helmet: '100%', vest: '75%', alert: '1 Missing High-Vis Vest' },
+              { camera: 'Cam-02 (Main Shaft Entry)', detected: 8, helmet: '100%', vest: '100%', alert: 'Full Compliance' },
+              { camera: 'Cam-03 (Conveyor Belt Transfer)', detected: 3, helmet: '100%', vest: '100%', alert: 'Full Compliance' },
+            ].map((c, i) => (
+              <div key={i} className="telemetry-chip">
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem' }}>{c.camera}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Workers: {c.detected} &bull; Helmets: {c.helmet} &bull; Vests: {c.vest}</div>
+                </div>
+                <div>
+                  <span className={`badge ${c.alert === 'Full Compliance' ? 'badge-green' : 'badge-orange'}`}>{c.alert}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 4. FIELD INSPECTOR DASHBOARD
+function InspectorDashboard() {
+  const { setCurrentPage, addToast } = useApp();
+  const scheduledInspections = inspections.slice(0, 3);
+  const pendingQueue = correctiveActions.slice(0, 4);
+
+  const kpis = [
+    { icon: '📅', value: '2 Today', label: "Today's Field Schedule", color: '#fbbf24', page: 'field' },
+    { icon: '🔍', value: '10 Audits', label: 'Pending Statutory Inquiries', color: '#10b981', page: 'inspections' },
+    { icon: '🚨', value: '36 Cited', label: 'Violations Documented', color: '#ea580c', page: 'violations' },
+    { icon: '✅', value: '5 Verification', label: 'Mine Closure Sign-Offs', color: '#d97706', page: 'corrective' },
+    { icon: '🎯', value: '5 Mines', label: 'High-Risk Priority Audits', color: '#ef4444', page: 'risk' },
+    { icon: '📷', value: '48 Evidence', label: 'Geo-Tagged Photo Records', color: '#3b82f6', page: 'field' },
+  ];
+
+  return (
+    <div>
+      <div className="page-header" style={{ marginBottom: 16 }}>
+        <div>
+          <h2>🔍 Field Inspection &amp; Audit Command Dashboard</h2>
+          <span className="subtitle">DGMS Statutory Audits, Real-Time Violation Tagging &amp; Time-Stamped Evidence Logging</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-primary btn-sm" onClick={() => setCurrentPage('field')}>📱 Start Field Inspection</button>
+          <button className="btn btn-outline btn-sm" onClick={() => setCurrentPage('voice')}>🎙️ Audio Voice Citation</button>
+        </div>
+      </div>
+
+      <div className="kpi-grid">
+        {kpis.map((kpi, i) => (
+          <div key={i} className="kpi-card" onClick={() => setCurrentPage(kpi.page)} style={{ '--accent': kpi.color }}>
+            <div className="kpi-icon">{kpi.icon}</div>
+            <div className="kpi-value" style={{ color: kpi.color }}>{kpi.value}</div>
+            <div className="kpi-label">{kpi.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid-2" style={{ marginBottom: 20 }}>
+        {/* Today's Field Itinerary */}
+        <div className="card">
+          <div className="card-header">
+            <span className="card-title">📅 Today's Field Inspection Itinerary</span>
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('field')}>GPS Route</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {scheduledInspections.map((insp) => {
+              const mine = getMine(insp.mineId);
+              return (
+                <div key={insp.id} className="telemetry-chip">
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem' }}>{mine?.name || insp.mineId}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Type: {insp.type} &bull; Date: {insp.scheduledDate}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: 2 }}>GPS: {mine?.lat.toFixed(2)}°N, {mine?.lng.toFixed(2)}°E</div>
                   </div>
-                ))}
+                  <div>
+                    <button className="btn btn-sm btn-primary" style={{ fontSize: '0.72rem', padding: '3px 8px' }} onClick={() => setCurrentPage('field')}>
+                      Launch Audit
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Verification Queue awaiting Inspector Sign-off */}
+        <div className="card">
+          <div className="card-header">
+            <span className="card-title">✅ Corrective Action Verification Queue (Sign-Off)</span>
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage('corrective')}>View All</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {pendingQueue.map(ca => (
+              <div key={ca.id} style={{ padding: '10px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{ca.id}: {ca.action}</span>
+                  <span className="badge badge-yellow">{ca.status}</span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 6 }}>Assigned: {ca.assignedTo} &bull; Due: {ca.dueDate}</div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                  <button className="btn btn-sm btn-outline" style={{ fontSize: '0.7rem', padding: '2px 8px' }} onClick={() => addToast('info', 'Inspection Scheduled', `On-site re-audit scheduled for ${ca.id}`)}>
+                    Re-Audit
+                  </button>
+                  <button className="btn btn-sm btn-success" style={{ fontSize: '0.7rem', padding: '2px 8px' }} onClick={() => addToast('success', 'Approved & Closed', `${ca.id} verified and officially certified by DGMS Inspector`)}>
+                    Certify &amp; Close
+                  </button>
+                </div>
               </div>
-            );
-          })()}
+            ))}
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// 5. MASTER DASHBOARD WRAPPER WITH ROLE SWITCHER
+function DashboardPage() {
+  const { currentUser, setCurrentUser, setCurrentPage, addToast } = useApp();
+  const currentRole = currentUser?.role || 'government';
+
+  return (
+    <div>
+      {/* Role Switcher HUD Banner */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 700, textTransform: 'uppercase' }}>
+            Active Role View:
+          </span>
+          <div className="role-switcher-bar">
+            {[
+              { id: 'government', label: '🏛️ Regulatory Officer' },
+              { id: 'mine_manager', label: '👷 Mine Manager' },
+              { id: 'safety_officer', label: '🦺 Safety Officer' },
+              { id: 'inspector', label: '🔍 Field Inspector' },
+            ].map(r => (
+              <button
+                key={r.id}
+                className={`btn-role-tab ${currentRole === r.id ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentUser({ ...currentUser, role: r.id });
+                  addToast('info', 'Dashboard Role Switched', `Now viewing as ${r.label}`);
+                }}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-outline btn-sm" onClick={() => setCurrentPage('map')}>🗺️ Live Map</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setCurrentPage('reports')}>📑 Export Report</button>
+        </div>
+      </div>
+
+      {/* Render matching Role Dashboard */}
+      {currentRole === 'government' && <GovernmentDashboard />}
+      {currentRole === 'mine_manager' && <MineManagerDashboard />}
+      {currentRole === 'safety_officer' && <SafetyOfficerDashboard />}
+      {currentRole === 'inspector' && <InspectorDashboard />}
     </div>
   );
 }

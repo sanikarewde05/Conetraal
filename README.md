@@ -1,6 +1,6 @@
 # ⛏️ CONETRAAL — AI-Powered Smart Mine Governance & Compliance System
 
-> **Smart India Hackathon 2026** | **Problem Statement ID:** SIH26024  
+> **National Mining Governance & Safety Initiative**  
 > **Theme:** Smart Automation | **Category:** Software  
 > **Target Sector:** Ministry of Coal / DGMS (Directorate General of Mines Safety) / State Mining Departments
 
@@ -8,7 +8,7 @@
 
 ## 📌 Executive Summary
 
-**CONETRAAL** is an enterprise-grade, AI-driven centralized governance, compliance monitoring, and predictive safety intelligence platform tailored for open-cast and underground coal mines across India. Built in response to **SIH26024**, CONETRAAL unifies statutory compliance, environmental monitoring, worker safety, computer vision PPE tracking, IoT telemetry, drone volumetric analysis, and regulatory audit workflows into a singular real-time command dashboard.
+**CONETRAAL** is an enterprise-grade, AI-driven centralized governance, compliance monitoring, and predictive safety intelligence platform tailored for open-cast and underground coal mines across India. CONETRAAL unifies statutory compliance, environmental monitoring, worker safety, computer vision PPE tracking, IoT telemetry, drone volumetric analysis, and regulatory audit workflows into a singular real-time command dashboard.
 
 ---
 
@@ -106,7 +106,7 @@
 
 ---
 
-## 🎯 Evaluator Presentation Guide (SIH Submission)
+## 🎯 Evaluator Presentation Guide
 
 When presenting the platform to judges or evaluators:
 1. Log in using the **Quick Login** buttons on the login screen (choose any of the 4 roles).
@@ -143,4 +143,4 @@ When presenting the platform to judges or evaluators:
 
 ---
 
-*Designed and Developed for the **Smart India Hackathon 2026** (SIH26024).*
+*CONETRAAL — Advanced AI-Powered Smart Mine Governance & Compliance System.*

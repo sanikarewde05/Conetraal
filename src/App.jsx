@@ -42,7 +42,7 @@ export default function App() {
       <div className="app-layout">
         <Sidebar />
         <div className="main-content">
-          {showBanner && <div className="system-banner">⚡ CONETRAAL — National Mine Governance & Compliance Monitoring System | Smart India Hackathon 2026 | SIH26024</div>}
+          {showBanner && <div className="system-banner">⚡ CONETRAAL — Centralized AI-Powered Smart Mine Governance & Compliance Monitoring System</div>}
           <Topbar />
           <Breadcrumbs />
           <div className="page-content animate-in" key={currentPage}>

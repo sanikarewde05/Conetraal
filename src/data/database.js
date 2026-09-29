@@ -510,3 +510,61 @@ export function getStats() {
   const totalWorkers = workers.length;
   return { totalMines, activeMines, compliantMines, nonCompliant, highRisk, criticalViolations, pendingInspections, expiringPermits, openCA, totalContractors, totalWorkers };
 }
+
+// ---- FINANCIAL DATA (PROFIT & LOSS) ----
+export const financialData = {
+  currentMonth: {
+    monthName: 'September 2026',
+    grossRevenue: 128.40, // in Crores INR
+    netProfit: 42.85,     // in Crores INR
+    operatingCost: 79.15, // in Crores INR
+    totalLosses: 6.40,    // in Crores INR (avoidable compliance/downtime losses)
+    profitMargin: 33.3,   // %
+    momGrowth: 14.2,      // % vs last month
+    lossesPreventedAI: 8.60, // in Crores INR saved by CONETRAAL AI warnings
+    lossBreakdown: [
+      { reason: 'Production Halt & Safety Shutdown Downtime', amount: 3.20, category: 'Downtime', avoidable: true },
+      { reason: 'DGMS Violation Penalties & Environmental Fines', amount: 1.80, category: 'Regulatory', avoidable: true },
+      { reason: 'Unplanned Machinery Breakdown & Fleet Idling', amount: 0.95, category: 'Equipment', avoidable: true },
+      { reason: 'Weighbridge & Transit Dispatch Spillage', amount: 0.45, category: 'Logistics', avoidable: false }
+    ],
+    revenueBreakdown: [
+      { source: 'Thermal Grade Coal Supply (NTPC & DVC)', amount: 82.50, pct: 64.2 },
+      { source: 'Coking Coal (Steel Plants - Tata / SAIL)', amount: 32.80, pct: 25.5 },
+      { source: 'E-Auction Dispatch Realization', amount: 13.10, pct: 10.3 }
+    ]
+  },
+  yearToDate: {
+    year: '2026 (YTD - 9 Months)',
+    grossRevenue: 1142.80, // in Crores INR
+    netProfit: 386.40,     // in Crores INR
+    operatingCost: 697.80, // in Crores INR
+    totalLosses: 58.60,    // in Crores INR
+    profitMargin: 33.8,    // %
+    yoyGrowth: 18.6,       // % YoY growth
+    lossesPreventedAI: 74.50, // in Crores INR
+    lossBreakdown: [
+      { reason: 'Safety Stop-Work Orders & Section 22 Downtime', amount: 28.40, category: 'Downtime', avoidable: true },
+      { reason: 'Statutory Penalties, DGMS Fines & Surcharges', amount: 14.20, category: 'Regulatory', avoidable: true },
+      { reason: 'Heavy Earth Moving Machinery (HEMM) Breakdowns', amount: 11.80, category: 'Equipment', avoidable: true },
+      { reason: 'Logistics Transit Theft, Pilferage & Discrepancies', amount: 4.20, category: 'Logistics', avoidable: true }
+    ],
+    revenueBreakdown: [
+      { source: 'Long-Term Fuel Supply Agreements (FSA)', amount: 742.00, pct: 64.9 },
+      { source: 'Special Forward Coking Coal Auctions', amount: 275.50, pct: 24.1 },
+      { source: 'Spot E-Auction Premiums', amount: 125.30, pct: 11.0 }
+    ]
+  },
+  monthlyTrend: [
+    { month: 'Jan', revenue: 118.2, cost: 74.5, loss: 7.2, profit: 36.5 },
+    { month: 'Feb', revenue: 122.0, cost: 76.0, loss: 6.8, profit: 39.2 },
+    { month: 'Mar', revenue: 135.4, cost: 81.2, loss: 8.5, profit: 45.7 },
+    { month: 'Apr', revenue: 120.6, cost: 75.8, loss: 6.1, profit: 38.7 },
+    { month: 'May', revenue: 124.8, cost: 77.2, loss: 6.4, profit: 41.2 },
+    { month: 'Jun', revenue: 116.5, cost: 73.0, loss: 9.2, profit: 34.3 },
+    { month: 'Jul', revenue: 128.0, cost: 78.5, loss: 6.9, profit: 42.6 },
+    { month: 'Aug', revenue: 148.9, cost: 82.5, loss: 6.1, profit: 46.3 },
+    { month: 'Sep', revenue: 128.4, cost: 79.15, loss: 6.4, profit: 42.85 }
+  ]
+};
+

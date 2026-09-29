@@ -7,7 +7,7 @@ const AppContext = createContext();
 export const useApp = () => useContext(AppContext);
 
 // ---- LAZY IMPORTS OF PAGES (will be inline components) ----
-import { users, mines, violations, inspections, complianceRecords, contractors, workers, correctiveActions, notifications as notifData, environmentalData, sensorData, droneSurveys, boundaryEvents, coalDispatch, riskPredictions, mineHistory, mineZones, auditLogs, getStats, getMine, getMineViolations, getMineCompliance, getMineInspections, getMineContractors, getMineWorkers, getMineCorrectiveActions, getMineZones, getMineHistory, getMineEnvironmental, getMineSensors } from './data/database';
+import { users, mines, violations, inspections, complianceRecords, contractors, workers, correctiveActions, notifications as notifData, environmentalData, sensorData, droneSurveys, boundaryEvents, coalDispatch, riskPredictions, mineHistory, mineZones, auditLogs, getStats, getMine, getMineViolations, getMineCompliance, getMineInspections, getMineContractors, getMineWorkers, getMineCorrectiveActions, getMineZones, getMineHistory, getMineEnvironmental, getMineSensors, financialData } from './data/database';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -295,6 +295,7 @@ function Sidebar() {
   const navItems = [
     { section: 'Command Center', items: [
       { id: 'dashboard', icon: '📊', label: 'Dashboard', badge: null },
+      { id: 'collection', icon: '💰', label: 'Annual Collection', badge: '2026' },
       { id: 'map', icon: '🗺️', label: 'Governance Map', badge: null },
       { id: 'mines', icon: '⛏️', label: 'Mine Database', badge: mines.length },
     ]},
@@ -420,7 +421,7 @@ function Topbar() {
 // ============== BREADCRUMBS ==============
 function Breadcrumbs() {
   const { currentPage } = useApp();
-  const pageNames = { dashboard: 'Central Command Dashboard', map: 'Live Governance Map', mines: 'Mine Database', compliance: 'Compliance Engine', calendar: 'Compliance Calendar', 'ai-compliance': 'AI Compliance Checker', risk: 'Risk Intelligence Center', inspections: 'Inspection Management', violations: 'Violation Management', corrective: 'Corrective Actions', field: 'Field Inspection Mode', ppe: 'AI PPE Detection Center', voice: 'Voice Reporting', nlp: 'NLP Document Analysis', environmental: 'Environmental Monitoring', sensors: 'IoT Sensor Dashboard', boundary: 'Boundary Monitoring', drones: 'Drone Survey Data', dispatch: 'Coal Dispatch', contractors: 'Contractor Management', workers: 'Worker Management', reports: 'Report Generation', analytics: 'Executive Analytics', audit: 'Audit Trail' };
+  const pageNames = { dashboard: 'Central Command Dashboard', collection: 'Annual Collection & Commercial P&L', map: 'Live Governance Map', mines: 'Mine Database', compliance: 'Compliance Engine', calendar: 'Compliance Calendar', 'ai-compliance': 'AI Compliance Checker', risk: 'Risk Intelligence Center', inspections: 'Inspection Management', violations: 'Violation Management', corrective: 'Corrective Actions', field: 'Field Inspection Mode', ppe: 'AI PPE Detection Center', voice: 'Voice Reporting', nlp: 'NLP Document Analysis', environmental: 'Environmental Monitoring', sensors: 'IoT Sensor Dashboard', boundary: 'Boundary Monitoring', drones: 'Drone Survey Data', dispatch: 'Coal Dispatch', contractors: 'Contractor Management', workers: 'Worker Management', reports: 'Report Generation', analytics: 'Executive Analytics', audit: 'Audit Trail' };
   return (
     <div className="breadcrumbs">
       <a href="#" onClick={() => {}}>CONETRAAL</a>
@@ -437,6 +438,7 @@ function PageRenderer() {
     <>
       {showActionPanel && <ActionPanel />}
       {currentPage === 'dashboard' && <DashboardPage />}
+      {currentPage === 'collection' && <AnnualCollectionPage />}
       {currentPage === 'map' && <MapPage />}
       {currentPage === 'mines' && <MinesPage />}
       {currentPage === 'compliance' && <CompliancePage />}
@@ -874,6 +876,607 @@ function InspectorDashboard() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============== REAL-TIME PROFIT & LOSS INTELLIGENCE SECTION ==============
+function ProfitLossSection({ initialTimeframe = 'month' }) {
+  const { addToast } = useApp();
+  const [timeframe, setTimeframe] = useState(initialTimeframe); // 'month' | 'year' | 'compare'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'losses' | 'trend'
+
+  const month = financialData.currentMonth;
+  const year = financialData.yearToDate;
+  const current = timeframe === 'year' ? year : month;
+
+  return (
+    <div className="card" style={{ marginBottom: 20, border: '1px solid var(--border)', background: 'var(--bg-secondary)', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+      {/* P&L Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 42, height: 42, borderRadius: 10, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.35rem', color: '#fff', boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
+            💰
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+                Commercial P&amp;L &amp; Financial Governance Analytics
+              </h3>
+              <span className="badge badge-green" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                🟢 Real-Time Coal Dispatch Audit
+              </span>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 2 }}>
+              Monitors Gross Coal Realization, Net Profits, Statutory Penalty Losses, and Proactive AI Cost Savings
+            </div>
+          </div>
+        </div>
+
+        {/* Timeframe & View Selectors */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'inline-flex', background: 'var(--bg-tertiary)', borderRadius: 8, padding: 3, border: '1px solid var(--border)' }}>
+            <button
+              className={`btn btn-sm ${timeframe === 'month' ? 'btn-primary' : 'btn-ghost'}`}
+              style={{ fontSize: '0.74rem', padding: '4px 12px', borderRadius: 6, fontWeight: 700 }}
+              onClick={() => setTimeframe('month')}
+            >
+              📅 This Month (Sep 2026)
+            </button>
+            <button
+              className={`btn btn-sm ${timeframe === 'year' ? 'btn-primary' : 'btn-ghost'}`}
+              style={{ fontSize: '0.74rem', padding: '4px 12px', borderRadius: 6, fontWeight: 700 }}
+              onClick={() => setTimeframe('year')}
+            >
+              📈 This Year (2026 YTD)
+            </button>
+            <button
+              className={`btn btn-sm ${timeframe === 'compare' ? 'btn-primary' : 'btn-ghost'}`}
+              style={{ fontSize: '0.74rem', padding: '4px 12px', borderRadius: 6, fontWeight: 700 }}
+              onClick={() => setTimeframe('compare')}
+            >
+              ⚖️ Side-by-Side Compare
+            </button>
+          </div>
+
+          <button
+            className="btn btn-sm btn-outline"
+            style={{ fontSize: '0.72rem', padding: '5px 10px' }}
+            onClick={() => addToast('success', 'P&L Audit Exported', `Generated full financial statement for ${timeframe === 'month' ? 'September 2026' : 'Fiscal Year 2026 YTD'}`)}
+          >
+            📑 Download Statement
+          </button>
+        </div>
+      </div>
+
+      {/* Mode 1 & 2: Single Period View (Month or Year) */}
+      {timeframe !== 'compare' && (
+        <div style={{ marginTop: 16 }}>
+          {/* Sub Navigation Tabs */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 16, borderBottom: '1px solid var(--border-light)', paddingBottom: 6 }}>
+            <button
+              onClick={() => setActiveTab('overview')}
+              style={{
+                background: 'none',
+                border: 'none',
+                borderBottom: activeTab === 'overview' ? '2px solid var(--accent)' : '2px solid transparent',
+                padding: '6px 12px',
+                fontWeight: activeTab === 'overview' ? 700 : 500,
+                color: activeTab === 'overview' ? 'var(--text-accent)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: '0.8rem'
+              }}
+            >
+              📊 {timeframe === 'month' ? 'September 2026' : 'Fiscal Year 2026 YTD'} Highlights
+            </button>
+            <button
+              onClick={() => setActiveTab('losses')}
+              style={{
+                background: 'none',
+                border: 'none',
+                borderBottom: activeTab === 'losses' ? '2px solid var(--accent)' : '2px solid transparent',
+                padding: '6px 12px',
+                fontWeight: activeTab === 'losses' ? 700 : 500,
+                color: activeTab === 'losses' ? 'var(--text-accent)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: '0.8rem'
+              }}
+            >
+              ⚠️ Loss Drivers &amp; Revenue Realization
+            </button>
+            <button
+              onClick={() => setActiveTab('trend')}
+              style={{
+                background: 'none',
+                border: 'none',
+                borderBottom: activeTab === 'trend' ? '2px solid var(--accent)' : '2px solid transparent',
+                padding: '6px 12px',
+                fontWeight: activeTab === 'trend' ? 700 : 500,
+                color: activeTab === 'trend' ? 'var(--text-accent)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: '0.8rem'
+              }}
+            >
+              📈 2026 Monthly Trajectory (Jan - Sep)
+            </button>
+          </div>
+
+          {activeTab === 'overview' && (
+            <div>
+              {/* 4 High-Impact KPI Cards */}
+              <div className="grid-4" style={{ marginBottom: 18 }}>
+                {/* 1. Net Profit */}
+                <div style={{ background: 'var(--bg-tertiary)', padding: 14, borderRadius: 'var(--radius)', border: '1px solid #10b98144', position: 'relative' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                      {timeframe === 'month' ? 'This Month Net Profit' : 'Year-To-Date Net Profit'}
+                    </span>
+                    <span className="badge badge-green" style={{ fontSize: '0.7rem' }}>
+                      {timeframe === 'month' ? `+${current.momGrowth}% MoM` : `+${current.yoyGrowth}% YoY`}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--green)', letterSpacing: '-0.5px' }}>
+                    +₹{current.netProfit.toFixed(2)} Cr
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.73rem', color: 'var(--text-secondary)', marginTop: 6 }}>
+                    <span>Profit Margin: <strong style={{ color: 'var(--text-primary)' }}>{current.profitMargin}%</strong></span>
+                    <span>OPEX: ₹{current.operatingCost.toFixed(2)} Cr</span>
+                  </div>
+                </div>
+
+                {/* 2. Gross Dispatch Revenue */}
+                <div style={{ background: 'var(--bg-tertiary)', padding: 14, borderRadius: 'var(--radius)', border: '1px solid #3b82f644' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                      {timeframe === 'month' ? 'This Month Gross Revenue' : 'Year-To-Date Gross Revenue'}
+                    </span>
+                    <span className="badge badge-blue" style={{ fontSize: '0.7rem' }}>
+                      42 Active Mines
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--blue)', letterSpacing: '-0.5px' }}>
+                    ₹{current.grossRevenue.toFixed(2)} Cr
+                  </div>
+                  <div style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', marginTop: 6 }}>
+                    Thermal FSA + Coking + Spot E-Auctions
+                  </div>
+                </div>
+
+                {/* 3. Incurred Losses */}
+                <div style={{ background: 'var(--bg-tertiary)', padding: 14, borderRadius: 'var(--radius)', border: '1px solid #ef444444' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                      {timeframe === 'month' ? 'This Month Incurred Losses' : 'Year-To-Date Incurred Losses'}
+                    </span>
+                    <span className="badge badge-red" style={{ fontSize: '0.7rem' }}>
+                      Avoidable: 92%
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--red)', letterSpacing: '-0.5px' }}>
+                    -₹{current.totalLosses.toFixed(2)} Cr
+                  </div>
+                  <div style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', marginTop: 6 }}>
+                    Downtime, DGMS Fines &amp; Machinery Idling
+                  </div>
+                </div>
+
+                {/* 4. AI Saved / Prevented Losses */}
+                <div style={{ background: 'var(--bg-tertiary)', padding: 14, borderRadius: 'var(--radius)', border: '1px solid #06b6d444' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                      AI Prevented Losses
+                    </span>
+                    <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>
+                      CONETRAAL ROI
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--cyan)', letterSpacing: '-0.5px' }}>
+                    +₹{current.lossesPreventedAI.toFixed(2)} Cr
+                  </div>
+                  <div style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', marginTop: 6 }}>
+                    Early hazard warnings averted stop-work bans
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Summary Banner */}
+              <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', padding: '12px 16px', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: '1.3rem' }}>💡</span>
+                  <div style={{ fontSize: '0.8rem' }}>
+                    <strong>Financial Governance Takeaway ({timeframe === 'month' ? 'September 2026' : 'Full Year 2026'}):</strong> Net profit margin stands solid at <strong style={{ color: 'var(--green)' }}>{current.profitMargin}%</strong>. Over <strong style={{ color: 'var(--red)' }}>₹{current.totalLosses.toFixed(2)} Cr</strong> was lost to compliance halts and DGMS fines, but CONETRAAL proactive alerts protected <strong style={{ color: 'var(--cyan)' }}>₹{current.lossesPreventedAI.toFixed(2)} Cr</strong> of coal yield.
+                  </div>
+                </div>
+                <button
+                  className="btn btn-sm btn-ghost"
+                  style={{ fontSize: '0.72rem', color: 'var(--text-accent)', textDecoration: 'underline' }}
+                  onClick={() => setActiveTab('losses')}
+                >
+                  Inspect Loss Drivers →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'losses' && (
+            <div className="grid-2">
+              {/* Left Column: Loss Breakdown */}
+              <div style={{ background: 'var(--bg-tertiary)', padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>
+                    🚨 Itemized Loss Breakdown ({timeframe === 'month' ? 'Sep 2026' : '2026 YTD'})
+                  </div>
+                  <span className="badge badge-red" style={{ fontWeight: 700 }}>Total: -₹{current.totalLosses.toFixed(2)} Cr</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {current.lossBreakdown.map((item, idx) => {
+                    const pct = ((item.amount / current.totalLosses) * 100).toFixed(1);
+                    return (
+                      <div key={idx} style={{ background: 'var(--card-bg)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-light)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                          <div>
+                            <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>{item.reason}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Category: {item.category}</div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontWeight: 800, color: 'var(--red)', fontSize: '0.88rem' }}>-₹{item.amount.toFixed(2)} Cr</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{pct}% of losses</div>
+                          </div>
+                        </div>
+                        <div className="score-bar" style={{ height: 6, marginTop: 4 }}>
+                          <div className="score-bar-fill" style={{ width: `${pct}%`, background: 'var(--red)' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right Column: Revenue Realization by Source */}
+              <div style={{ background: 'var(--bg-tertiary)', padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>
+                    📈 Revenue Streams Realization ({timeframe === 'month' ? 'Sep 2026' : '2026 YTD'})
+                  </div>
+                  <span className="badge badge-blue" style={{ fontWeight: 700 }}>Gross: ₹{current.grossRevenue.toFixed(2)} Cr</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {current.revenueBreakdown.map((item, idx) => (
+                    <div key={idx} style={{ background: 'var(--card-bg)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-light)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                        <div>
+                          <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>{item.source}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Offtake Realization</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontWeight: 800, color: 'var(--blue)', fontSize: '0.88rem' }}>₹{item.amount.toFixed(2)} Cr</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{item.pct}% share</div>
+                        </div>
+                      </div>
+                      <div className="score-bar" style={{ height: 6, marginTop: 4 }}>
+                        <div className="score-bar-fill" style={{ width: `${item.pct}%`, background: 'var(--blue)' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'trend' && (
+            <div style={{ background: 'var(--bg-tertiary)', padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                    📊 2026 Monthly Trajectory: Revenue vs Operating Cost vs Loss vs Net Profit
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                    Values in Crores INR (₹ Cr) across all 42 operating coal concessions
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 12, fontSize: '0.75rem', fontWeight: 600 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--blue)' }} /> Revenue</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: '#94a3b8' }} /> OPEX Cost</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--green)' }} /> Net Profit</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--red)' }} /> Losses</span>
+                </div>
+              </div>
+
+              {/* Bar visualization */}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 190, paddingTop: 20 }}>
+                {financialData.monthlyTrend.map((m, idx) => {
+                  const maxVal = 155;
+                  const revHeight = (m.revenue / maxVal) * 140;
+                  const costHeight = (m.cost / maxVal) * 140;
+                  const profitHeight = (m.profit / maxVal) * 140;
+                  const lossHeight = (m.loss / maxVal) * 140;
+
+                  return (
+                    <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, width: '100%', justifyContent: 'center' }}>
+                        {/* Revenue Bar */}
+                        <div title={`Revenue: ₹${m.revenue} Cr`} style={{ flex: 1, height: revHeight, background: 'var(--blue)', borderRadius: '3px 3px 0 0', opacity: 0.85 }} />
+                        {/* Cost Bar */}
+                        <div title={`Cost: ₹${m.cost} Cr`} style={{ flex: 1, height: costHeight, background: '#94a3b8', borderRadius: '3px 3px 0 0', opacity: 0.8 }} />
+                        {/* Profit Bar */}
+                        <div title={`Net Profit: ₹${m.profit} Cr`} style={{ flex: 1, height: profitHeight, background: 'var(--green)', borderRadius: '3px 3px 0 0' }} />
+                        {/* Loss Bar */}
+                        <div title={`Loss: -₹${m.loss} Cr`} style={{ flex: 1, height: lossHeight, background: 'var(--red)', borderRadius: '3px 3px 0 0' }} />
+                      </div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', marginTop: 8 }}>
+                        {m.month}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--green)' }}>
+                        +₹{m.profit}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Mode 3: Side-by-Side Comparison (This Month vs This Year) */}
+      {timeframe === 'compare' && (
+        <div style={{ marginTop: 16 }}>
+          <div className="grid-2" style={{ gap: 16 }}>
+            {/* THIS MONTH COLUMN */}
+            <div style={{ background: 'var(--bg-tertiary)', padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800 }}>📅 This Month (September 2026)</h4>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Current active operating period</span>
+                </div>
+                <span className="badge badge-green">Margin: {month.profitMargin}%</span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card-bg)', borderRadius: 6 }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Gross Realized Revenue</span>
+                  <strong style={{ color: 'var(--blue)' }}>₹{month.grossRevenue.toFixed(2)} Cr</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card-bg)', borderRadius: 6 }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Operating Expenditure (OPEX)</span>
+                  <strong style={{ color: 'var(--text-secondary)' }}>₹{month.operatingCost.toFixed(2)} Cr</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card-bg)', borderRadius: 6, border: '1px solid #10b98144' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>Net Monthly Profit</span>
+                  <strong style={{ color: 'var(--green)', fontSize: '0.95rem' }}>+₹{month.netProfit.toFixed(2)} Cr (+{month.momGrowth}% MoM)</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card-bg)', borderRadius: 6, border: '1px solid #ef444444' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>Total Incurred Losses</span>
+                  <strong style={{ color: 'var(--red)', fontSize: '0.95rem' }}>-₹{month.totalLosses.toFixed(2)} Cr</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card-bg)', borderRadius: 6, border: '1px solid #06b6d444' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>AI Prevented Losses</span>
+                  <strong style={{ color: 'var(--cyan)', fontSize: '0.95rem' }}>+₹{month.lossesPreventedAI.toFixed(2)} Cr Saved</strong>
+                </div>
+              </div>
+
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+                <strong>Top Monthly Loss Driver:</strong> Production Halt &amp; Downtime (₹3.20 Cr, 50% of monthly losses)
+              </div>
+            </div>
+
+            {/* THIS YEAR COLUMN */}
+            <div style={{ background: 'var(--bg-tertiary)', padding: 16, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800 }}>📈 This Year (2026 YTD - 9 Months)</h4>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Cumulative 2026 performance</span>
+                </div>
+                <span className="badge badge-green">Margin: {year.profitMargin}%</span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card-bg)', borderRadius: 6 }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Gross Realized Revenue</span>
+                  <strong style={{ color: 'var(--blue)' }}>₹{year.grossRevenue.toFixed(2)} Cr</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card-bg)', borderRadius: 6 }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Operating Expenditure (OPEX)</span>
+                  <strong style={{ color: 'var(--text-secondary)' }}>₹{year.operatingCost.toFixed(2)} Cr</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card-bg)', borderRadius: 6, border: '1px solid #10b98144' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>Net YTD Profit</span>
+                  <strong style={{ color: 'var(--green)', fontSize: '0.95rem' }}>+₹{year.netProfit.toFixed(2)} Cr (+{year.yoyGrowth}% YoY)</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card-bg)', borderRadius: 6, border: '1px solid #ef444444' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>Total Incurred Losses</span>
+                  <strong style={{ color: 'var(--red)', fontSize: '0.95rem' }}>-₹{year.totalLosses.toFixed(2)} Cr</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card-bg)', borderRadius: 6, border: '1px solid #06b6d444' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>AI Prevented Losses</span>
+                  <strong style={{ color: 'var(--cyan)', fontSize: '0.95rem' }}>+₹{year.lossesPreventedAI.toFixed(2)} Cr Saved</strong>
+                </div>
+              </div>
+
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+                <strong>Top Annual Loss Driver:</strong> Safety Stop-Work Orders &amp; Section 22 Downtime (₹28.40 Cr, 48.5% of losses)
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============== ANNUAL COLLECTION & COMMERCIAL P&L PAGE ==============
+function AnnualCollectionPage() {
+  const { addToast } = useApp();
+  const [selectedState, setSelectedState] = useState('all');
+  const [searchMine, setSearchMine] = useState('');
+
+  const month = financialData.currentMonth;
+  const year = financialData.yearToDate;
+
+  // Mine-wise collection & royalty distribution data
+  const mineCollections = useMemo(() => {
+    return mines.map((m) => {
+      const share = (m.productionCapacity || 12) / 100;
+      const annualRev = +(year.grossRevenue * share * 0.45).toFixed(2);
+      const monthlyRev = +(month.grossRevenue * share * 0.45).toFixed(2);
+      const annualLoss = +(year.totalLosses * (m.riskScore >= 70 ? 0.08 : 0.02)).toFixed(2);
+      const monthlyLoss = +(month.totalLosses * (m.riskScore >= 70 ? 0.08 : 0.02)).toFixed(2);
+      const royaltyPaid = +(annualRev * 0.14).toFixed(2);
+      const dmfPaid = +(royaltyPaid * 0.30).toFixed(2);
+
+      return {
+        id: m.id,
+        name: m.name,
+        state: m.state,
+        type: m.type,
+        annualRev,
+        monthlyRev,
+        annualLoss,
+        monthlyLoss,
+        royaltyPaid,
+        dmfPaid,
+        complianceScore: m.complianceScore,
+        violations: m.activeViolations,
+        status: m.status
+      };
+    });
+  }, [mines, year, month]);
+
+  const filteredMines = mineCollections.filter(m => {
+    if (selectedState !== 'all' && m.state !== selectedState) return false;
+    if (searchMine && !m.name.toLowerCase().includes(searchMine.toLowerCase()) && !m.id.toLowerCase().includes(searchMine.toLowerCase())) return false;
+    return true;
+  });
+
+  const states = ['all', ...new Set(mines.map(m => m.state))];
+
+  return (
+    <div>
+      {/* Page Header */}
+      <div className="page-header" style={{ marginBottom: 18 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <h2>💰 Annual Collection &amp; Commercial P&amp;L Governance</h2>
+            <span className="badge badge-green" style={{ fontSize: '0.72rem', padding: '3px 10px' }}>
+              🟢 Live Statutory PFMS &amp; DGMS Synced
+            </span>
+            <span className="badge badge-blue" style={{ fontSize: '0.72rem', padding: '3px 10px' }}>
+              FY 2026-27 Active
+            </span>
+          </div>
+          <span className="subtitle">
+            National commercial coal realization, monthly &amp; annual profit &amp; loss analysis, statutory penalties, and royalty tracking across 42 mines
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => addToast('success', 'Annual Collection Ledger Exported', 'Certified PDF ledger with CA seal generated')}
+          >
+            📑 Export P&amp;L Statement
+          </button>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => addToast('info', 'Royalty Ledger Synced', 'DMF & State Mineral cess reconciled with treasury')}
+          >
+            🏛️ Treasury Sync
+          </button>
+        </div>
+      </div>
+
+      {/* Main ProfitLoss Section configured with default 'year' (Annual Collection) */}
+      <ProfitLossSection initialTimeframe="year" />
+
+      {/* Mine-wise Annual Collection Ledger */}
+      <div className="card" style={{ marginTop: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, margin: 0 }}>
+              ⛏️ Commercial Realization &amp; Royalty Ledger by Mine
+            </h3>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+              Individual mine dispatch realization, state mineral royalties (14%), and District Mineral Foundation (DMF) trust funds
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              placeholder="Search mine name or ID..."
+              value={searchMine}
+              onChange={e => setSearchMine(e.target.value)}
+              className="form-input"
+              style={{ padding: '6px 12px', fontSize: '0.78rem', width: 200 }}
+            />
+            <select
+              value={selectedState}
+              onChange={e => setSelectedState(e.target.value)}
+              className="form-input"
+              style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+            >
+              <option value="all">All States ({mines.length} Mines)</option>
+              {states.filter(s => s !== 'all').map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Mine ID</th>
+                <th>Mine Name &amp; State</th>
+                <th>Type</th>
+                <th>Annual Collection (₹ Cr)</th>
+                <th>This Month (₹ Cr)</th>
+                <th>Avoidable Loss</th>
+                <th>State Royalty (14%)</th>
+                <th>DMF Fund (30%)</th>
+                <th>Statutory Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredMines.map(m => (
+                <tr key={m.id}>
+                  <td style={{ fontWeight: 700, color: 'var(--text-accent)' }}>{m.id}</td>
+                  <td>
+                    <div style={{ fontWeight: 600 }}>{m.name}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{m.state}</div>
+                  </td>
+                  <td>
+                    <span className={`badge ${m.type === 'Underground' ? 'badge-blue' : m.type === 'Mixed' ? 'badge-yellow' : 'badge-cyan'}`}>
+                      {m.type}
+                    </span>
+                  </td>
+                  <td style={{ fontWeight: 800, color: 'var(--blue)' }}>
+                    ₹{m.annualRev} Cr
+                  </td>
+                  <td style={{ fontWeight: 700, color: 'var(--green)' }}>
+                    ₹{m.monthlyRev} Cr
+                  </td>
+                  <td style={{ fontWeight: 700, color: m.annualLoss > 2 ? 'var(--red)' : 'var(--text-secondary)' }}>
+                    -₹{m.annualLoss} Cr
+                  </td>
+                  <td style={{ fontWeight: 600 }}>
+                    ₹{m.royaltyPaid} Cr
+                  </td>
+                  <td style={{ fontWeight: 600, color: 'var(--text-accent)' }}>
+                    ₹{m.dmfPaid} Cr
+                  </td>
+                  <td>
+                    <span className={`badge ${m.complianceScore >= 80 ? 'badge-green' : m.complianceScore >= 60 ? 'badge-yellow' : 'badge-red'}`}>
+                      {m.complianceScore}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -2762,13 +3365,16 @@ function AnalyticsPage() {
   return (
     <div>
       <div className="page-header">
-        <div><h2>📈 Executive Analytics</h2><span className="subtitle">Advanced analytics and trend visualization</span></div>
+        <div><h2>📈 Executive Analytics &amp; Commercial Governance</h2><span className="subtitle">Real-time revenue, profit &amp; loss analysis, and risk trend visualization</span></div>
         <div className="filters-bar">
           {['daily', 'weekly', 'monthly', 'yearly'].map(p => (
             <button key={p} className={`filter-chip ${period === p ? 'active' : ''}`} onClick={() => setPeriod(p)}>{p.charAt(0).toUpperCase() + p.slice(1)}</button>
           ))}
         </div>
       </div>
+
+      {/* P&L Governance Analytics */}
+      <ProfitLossSection initialTimeframe={period === 'yearly' ? 'year' : 'month'} />
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <div className="card">
